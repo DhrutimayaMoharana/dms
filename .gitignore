@@ -1,0 +1,13 @@
+
+*.prefs
+*.properties
+*.xml
+*.class
+*.component
+*.container
+*.name
+*.MF
+.project
+.classpath
+.settings/.jsdtscope
+target/*
