@@ -39,17 +39,11 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 				}
 			}
 
-			
 			if (paginatedRequest.getSearchKey() != null && !paginatedRequest.getSearchKey().equals("")) {
-				String searchKey = paginatedRequest.getSearchKey().toUpperCase();
-				Predicate searchPredicate = cb.or(cb.equal(root.get("driverName"), searchKey),
-						cb.equal(root.get("vehicleNo"), searchKey));
-
-				try {
-					EventType searchEventType = EventType.valueOf(searchKey);
-					searchPredicate = cb.or(searchPredicate, cb.equal(root.get("eventType"), searchEventType));
-				} catch (IllegalArgumentException ignored) {
-				}
+				Predicate searchPredicate = cb.or(
+						cb.like(root.get("driverName"), "%" + paginatedRequest.getSearchKey() + "%"),
+						cb.like(root.get("vehicleNo"), "%" + paginatedRequest.getSearchKey() + "%"),
+						cb.like(root.get("eventType"), "%" + paginatedRequest.getSearchKey() + "%"));
 
 				predicate = cb.and(predicate, searchPredicate);
 			}
