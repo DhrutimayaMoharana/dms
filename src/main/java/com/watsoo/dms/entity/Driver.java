@@ -6,6 +6,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 
 @Entity
 public class Driver {
@@ -21,9 +23,12 @@ public class Driver {
 	@Column(name = "phone")
 	private String phoneNumber;
 	
+	@OneToOne
+	@JoinColumn(name="vehicle_id")
+	private Vehicle vehicle;
+	
 	private int age;
 
-	
 	private String dob;
 
 	public Long getId() {
@@ -64,6 +69,14 @@ public class Driver {
 
 	public void setDob(String dob) {
 		this.dob = dob;
+	}
+
+	public Vehicle getVehicle() {
+		return vehicle;
+	}
+
+	public void setVehicle(Vehicle vehicle) {
+		this.vehicle = vehicle;
 	}
 	
 	

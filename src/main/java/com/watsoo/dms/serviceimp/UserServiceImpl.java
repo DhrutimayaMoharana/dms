@@ -138,13 +138,6 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public Response<?> searchByName(String userName) {
 
-//		List<User> users = userRepository.findByusernameContaining(userName);
-//
-//		if (users.isEmpty()) {
-//			return new Response<>("No users found with the given name", null, HttpStatus.NOT_FOUND.value());
-//		} else {
-//			return new Response<>("Users found with the given name", users, HttpStatus.OK.value());
-//		}
 		return null;
 	}
 	

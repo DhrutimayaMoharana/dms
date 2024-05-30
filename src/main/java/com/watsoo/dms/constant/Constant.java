@@ -7,4 +7,14 @@ public class Constant {
 	public static final String THIS_WEEK = "This Week";
 	public static final String LAST_MONTH = "Last Month";
 	public static final String TILL_TODAY = "Till Today";
+	
+	
+	public static final String ALARM_CLOSE_EYES = "closeEyes";
+    public static final String ALARM_DISTRACTION = "distraction";
+    public static final String ALARM_LOW_HEAD = "lowHead";
+    public static final String ALARM_DRINKING = "drinking";
+    public static final String ALARM_NO_FACE = "noFace";
+    public static final String ALARM_PHONE_CALLING = "phoneCalling";
+    public static final String ALARM_SMOKING_ALERT = "smoking";
+    public static final String ALARM_YAWN_ALERT = "yawning";
 }

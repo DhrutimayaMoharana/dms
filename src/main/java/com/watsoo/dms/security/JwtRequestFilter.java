@@ -37,7 +37,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
 		final String requestTokenHeader = request.getHeader("Authorization");
 		String url = request.getRequestURI().substring(request.getContextPath().length());
-		String methodType = request.getMethod();
+//		String methodType = request.getMethod();
 		String username = null;
 		String jwtToken = null;
 

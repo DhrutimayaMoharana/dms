@@ -1,125 +1,119 @@
 package com.watsoo.dms.entity;
 
 import java.util.Date;
-
 import com.watsoo.dms.enums.EventType;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "event")
 public class Event {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	private String vehicleNo;
-	private String driverName;
-	private String driverPhone;
-	private Long driverId;
-	private Long vehicleId;
-	private Long positionId;
+    private String vehicleNo;
+  
+    private Long positionId;
 
-	@Enumerated(EnumType.STRING)
-	private EventType eventType;
-	private Date eventTime;
-	private String evidencePhotos;
-	private String evidenceVideos;
+    @Enumerated(EnumType.STRING)
+    private EventType eventType;
 
-	public Event() {
-	}
+    private Date eventTime;
+    
+    private String evidencePhotos;
+    
+    private String evidenceVideos;
+    
+    private Long deviceId;
 
-	public Long getId() {
-		return id;
-	}
+    @Column(name="longitude")
+    private Double longitude;
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    @Column(name="latitude")
+    private Double latitude;
+   
+    public Event() {
+    }
 
-	public String getVehicleNo() {
-		return vehicleNo;
-	}
+    // Getters and Setters for all fields
 
-	public void setVehicleNo(String vehicleNo) {
-		this.vehicleNo = vehicleNo;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public String getDriverName() {
-		return driverName;
-	}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public void setDriverName(String driverName) {
-		this.driverName = driverName;
-	}
+    public String getVehicleNo() {
+        return vehicleNo;
+    }
 
-	public String getDriverPhone() {
-		return driverPhone;
-	}
+    public void setVehicleNo(String vehicleNo) {
+        this.vehicleNo = vehicleNo;
+    }
+    public Long getPositionId() {
+        return positionId;
+    }
 
-	public void setDriverPhone(String driverPhone) {
-		this.driverPhone = driverPhone;
-	}
+    public void setPositionId(Long positionId) {
+        this.positionId = positionId;
+    }
 
-	public Long getDriverId() {
-		return driverId;
-	}
+    public EventType getEventType() {
+        return eventType;
+    }
 
-	public void setDriverId(Long driverId) {
-		this.driverId = driverId;
-	}
+    public void setEventType(EventType eventType) {
+        this.eventType = eventType;
+    }
 
-	public Long getVehicleId() {
-		return vehicleId;
-	}
+    public Date getEventTime() {
+        return eventTime;
+    }
 
-	public void setVehicleId(Long vehicleId) {
-		this.vehicleId = vehicleId;
-	}
+    public void setEventTime(Date eventTime) {
+        this.eventTime = eventTime;
+    }
 
-	public Long getPositionId() {
-		return positionId;
-	}
+    public String getEvidencePhotos() {
+        return evidencePhotos;
+    }
 
-	public void setPositionId(Long positionId) {
-		this.positionId = positionId;
-	}
+    public void setEvidencePhotos(String evidencePhotos) {
+        this.evidencePhotos = evidencePhotos;
+    }
 
-	public EventType getEventType() {
-		return eventType;
-	}
+    public String getEvidenceVideos() {
+        return evidenceVideos;
+    }
 
-	public void setEventType(EventType eventType) {
-		this.eventType = eventType;
-	}
+    public void setEvidenceVideos(String evidenceVideos) {
+        this.evidenceVideos = evidenceVideos;
+    }
 
-	public Date getEventTime() {
-		return eventTime;
-	}
+    public Long getDeviceId() {
+        return deviceId;
+    }
 
-	public void setEventTime(Date eventTime) {
-		this.eventTime = eventTime;
-	}
+    public void setDeviceId(Long deviceId) {
+        this.deviceId = deviceId;
+    }
 
-	public String getEvidencePhotos() {
-		return evidencePhotos;
-	}
+    public Double getLongitude() {
+        return longitude;
+    }
 
-	public void setEvidencePhotos(String evidencePhotos) {
-		this.evidencePhotos = evidencePhotos;
-	}
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
 
-	public String getEvidenceVideos() {
-		return evidenceVideos;
-	}
+    public Double getLatitude() {
+        return latitude;
+    }
 
-	public void setEvidenceVideos(String evidenceVideos) {
-		this.evidenceVideos = evidenceVideos;
-	}
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
 }

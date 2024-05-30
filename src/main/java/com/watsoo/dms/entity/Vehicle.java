@@ -12,10 +12,16 @@ public class Vehicle {
     private Long id;
     
     private String name;
+    
     private String chassisNumber;
+    
     private String color;
+    
     private String engineNumber;
+    
     private String vehicleNumber;
+    
+    private Integer deviceId;
 
     
     public Vehicle() {
@@ -77,7 +83,13 @@ public class Vehicle {
         this.engineNumber = engineNumber;
     }
 
-    
+	public Integer getDeviceId() {
+		return deviceId;
+	}
+
+	public void setDeviceId(Integer deviceId) {
+		this.deviceId = deviceId;
+	}   
    
 }
 

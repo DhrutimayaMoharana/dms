@@ -1,7 +1,6 @@
 package com.watsoo.dms.serviceimp;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,12 +36,8 @@ public class FileServiceImpl implements FileService {
 		try {
 			Path targetLocation = this.dirLocation.resolve(fileName);
 			Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-			String serverIpAddress = InetAddress.getLoopbackAddress().getHostAddress();
-			String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-	                .host(serverIpAddress)
-	                .path("/getFile/")
-	                .path(fileName)
-	                .toUriString();
+			String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/getFile/")
+					.path(fileName).toUriString();
 			return new Response<>("File successfull uploaded", fileDownloadUri, HttpStatus.OK.value());
 		} catch (IOException ex) {
 			return new Response<>("File fail to uploaded", null, HttpStatus.BAD_REQUEST.value());

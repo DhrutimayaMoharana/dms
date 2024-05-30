@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.watsoo.dms.dto.LoginRequest;
 import com.watsoo.dms.dto.Response;
 import com.watsoo.dms.dto.UserDto;
-import com.watsoo.dms.repository.UserRepository;
 import com.watsoo.dms.service.UserService;
 
 @RestController
