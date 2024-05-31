@@ -1,6 +1,8 @@
 package com.watsoo.dms.entity;
 
 
+import java.util.Date;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -23,9 +25,16 @@ public class Driver {
 	@Column(name = "phone")
 	private String phoneNumber;
 	
-	@OneToOne
-	@JoinColumn(name="vehicle_id")
-	private Vehicle vehicle;
+	private Long vehicle_id;
+	
+	@Column(name = "created_on")
+	private Date createdOn;
+
+	@Column(name = "updated_on")
+	private Date updatedOn;
+
+	@Column(name = "is_active")
+	private Boolean isActive;
 	
 	private int age;
 
@@ -71,13 +80,39 @@ public class Driver {
 		this.dob = dob;
 	}
 
-	public Vehicle getVehicle() {
-		return vehicle;
+	public Long getVehicle_id() {
+		return vehicle_id;
 	}
 
-	public void setVehicle(Vehicle vehicle) {
-		this.vehicle = vehicle;
+	public void setVehicle_id(Long vehicle_id) {
+		this.vehicle_id = vehicle_id;
 	}
+
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public Date getUpdatedOn() {
+		return updatedOn;
+	}
+
+	public void setUpdatedOn(Date updatedOn) {
+		this.updatedOn = updatedOn;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	
 	
 	
 

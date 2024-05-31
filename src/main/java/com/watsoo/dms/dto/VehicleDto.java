@@ -1,65 +1,106 @@
 package com.watsoo.dms.dto;
 
+import java.util.Date;
+
 import com.watsoo.dms.entity.Vehicle;
 
+
 public class VehicleDto {
-    private Long id;
-    private String name;
-    private String chassisNumber;
-    private String color;
-    private String engineNumber;
-    private String vehicleNumber;
+	private Long id;
+	private String name;
+	private String chassisNumber;
+	private String color;
+	private String engineNumber;
+	private String vehicleNumber;
+	private Integer deviceId;
+	private Date createdOn;
 
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
+	private Date updatedOn;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	private Boolean isActive;
 
-    public String getName() {
-        return name;
-    }
+	// Getters and Setters
+	public Long getId() {
+		return id;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public String getChassisNumber() {
-        return chassisNumber;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setChassisNumber(String chassisNumber) {
-        this.chassisNumber = chassisNumber;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public String getColor() {
-        return color;
-    }
+	public String getChassisNumber() {
+		return chassisNumber;
+	}
 
-    public void setColor(String color) {
-        this.color = color;
-    }
+	public void setChassisNumber(String chassisNumber) {
+		this.chassisNumber = chassisNumber;
+	}
 
-    public String getEngineNumber() {
-        return engineNumber;
-    }
+	public String getColor() {
+		return color;
+	}
 
-    public void setEngineNumber(String engineNumber) {
-        this.engineNumber = engineNumber;
-    }
+	public void setColor(String color) {
+		this.color = color;
+	}
 
-    public String getVehicleNumber() {
-        return vehicleNumber;
-    }
+	public String getEngineNumber() {
+		return engineNumber;
+	}
 
-    public void setVehicleNumber(String vehicleNumber) {
-        this.vehicleNumber = vehicleNumber;
-    }
+	public void setEngineNumber(String engineNumber) {
+		this.engineNumber = engineNumber;
+	}
 
-    public static VehicleDto fromEntity(Vehicle vehicle) {
+	public String getVehicleNumber() {
+		return vehicleNumber;
+	}
+
+	public void setVehicleNumber(String vehicleNumber) {
+		this.vehicleNumber = vehicleNumber;
+	}
+	
+	public Integer getDeviceId() {
+		return deviceId;
+	}
+
+	public void setDeviceId(Integer deviceId) {
+		this.deviceId = deviceId;
+	}
+
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public Date getUpdatedOn() {
+		return updatedOn;
+	}
+
+	public void setUpdatedOn(Date updatedOn) {
+		this.updatedOn = updatedOn;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public static VehicleDto fromEntity(Vehicle vehicle) {
         VehicleDto dto = new VehicleDto();
         dto.setId(vehicle.getId());
         dto.setName(vehicle.getName());
@@ -67,7 +108,10 @@ public class VehicleDto {
         dto.setColor(vehicle.getColor());
         dto.setEngineNumber(vehicle.getEngineNumber());
         dto.setVehicleNumber(vehicle.getVehicleNumber());
+        dto.setDeviceId(vehicle.getDeviceId());
+        dto.setCreatedOn(vehicle.getCreatedOn());
+        dto.setUpdatedOn(vehicle.getUpdatedOn());
+        dto.setIsActive(vehicle.getIsActive());
         return dto;
     }
 }
-

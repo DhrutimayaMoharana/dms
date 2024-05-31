@@ -21,6 +21,8 @@ public class Event {
 
     private Date eventTime;
     
+    private Date eventServerCreateTime;
+    
     private String evidencePhotos;
     
     private String evidenceVideos;
@@ -116,4 +118,13 @@ public class Event {
     public void setLatitude(Double latitude) {
         this.latitude = latitude;
     }
+
+	public Date getEventServerCreateTime() {
+		return eventServerCreateTime;
+	}
+
+	public void setEventServerCreateTime(Date eventServerCreateTime) {
+		this.eventServerCreateTime = eventServerCreateTime;
+	}
+    
 }
