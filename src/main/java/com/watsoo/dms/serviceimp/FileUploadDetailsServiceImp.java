@@ -41,20 +41,8 @@ public class FileUploadDetailsServiceImp implements FileUploadDetailsService {
 				obj.setCommandSendId(commandSendDetails.getId());
 				obj.setFileDownloadUrl(fileDawnloadUrl);
 				obj.setFileName(fileName);
-				String filePresentOrNot = restClientService.getFilePresentOrNot(fileName);
+//				String filePresentOrNot = restClientService.getFilePresentOrNot(fileName);
 				boolean isFileExit = false;
-				if (filePresentOrNot != null) {
-
-					Gson gson = new Gson();
-					JsonObject resposnse = gson.fromJson(filePresentOrNot, JsonObject.class);
-					if (resposnse.has("code")) {
-						String responseCode = resposnse.get("code").getAsString();
-						if (responseCode.equals("200")) {
-							isFileExit = true;
-						}
-					}
-
-				}
 				obj.setIsFileExist(isFileExit);
 				fileUploadList.add(obj);
 
@@ -64,6 +52,34 @@ public class FileUploadDetailsServiceImp implements FileUploadDetailsService {
 		if (fileUploadList != null && fileUploadList.size() > 0) {
 			List<FileUploadDetails> saveAll = fileUploadDetailsRepository.saveAll(fileUploadList);
 		}
+	}
+
+	@Override
+	public void updateFlleDetalis() {
+
+		List<FileUploadDetails> findByIsFileExistIsNullOrIsFileExistFalse = fileUploadDetailsRepository
+				.findByIsFileExistIsNullOrIsFileExistFalse();
+
+		if (findByIsFileExistIsNullOrIsFileExistFalse != null && findByIsFileExistIsNullOrIsFileExistFalse.size() > 0) {
+			for (FileUploadDetails fileDetails : findByIsFileExistIsNullOrIsFileExistFalse) {
+
+				boolean isFileExit = false;
+				String filePresentOrNot = restClientService.getFilePresentOrNot(fileDetails.getFileName());
+				Gson gson = new Gson();
+				JsonObject resposnse = gson.fromJson(filePresentOrNot, JsonObject.class);
+				if (resposnse.has("code")) {
+					String responseCode = resposnse.get("code").getAsString();
+					if (responseCode.equals("200")) {
+						isFileExit = true;
+					}
+				}
+				fileDetails.setIsFileExist(isFileExit);
+
+			}
+			fileUploadDetailsRepository
+					.saveAll(findByIsFileExistIsNullOrIsFileExistFalse);
+		}
+
 	}
 
 }

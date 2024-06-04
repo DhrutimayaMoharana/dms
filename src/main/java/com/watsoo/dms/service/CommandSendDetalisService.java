@@ -8,4 +8,6 @@ public interface CommandSendDetalisService {
 
 	void saveCommandDetalis(List<Event> saveAll);
 
+	void sendCommand(int reCallCount, int processSleepTime);
+
 }

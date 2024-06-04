@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,12 +13,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import com.watsoo.dms.entity.Event;
+import com.watsoo.dms.constant.HttpApi;
+import com.watsoo.dms.entity.CommandSendDetails;
 
 @Component
 public class RestClientService {
@@ -41,7 +44,8 @@ public class RestClientService {
 
 		ResponseEntity<String> responseEntity = null;
 		try {
-			String eventUrl = baseUrl + "/api/reports/events";
+//			String eventUrl = baseUrl + "/api/reports/events";
+			String eventUrl = baseUrl + HttpApi.EVENTS_DETALIS_FEATH_END_POINT;
 			String url = buildUrl(eventUrl, deviceId, type, fromTime, toTime);
 			RestTemplate restTemplate = new RestTemplate();
 			HttpHeaders headers = new HttpHeaders();
@@ -85,7 +89,7 @@ public class RestClientService {
 		try {
 			ResponseEntity<String> responseEntity = null;
 			String positionsEndpoint = "/api/positions?id=";
-			String url = constructUrl(positionIdList, positionsEndpoint);
+			String url = constructUrl(positionIdList, HttpApi.POISITIONS_DETALIS_FEATH_END_POINT);
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.setBasicAuth(username, password);
@@ -129,8 +133,8 @@ public class RestClientService {
 		List<Long> deviceIDList = new ArrayList<>(allDeviceID);
 		try {
 			ResponseEntity<String> responseEntity = null;
-			String positionsEndpoint = "/api/devices?id=";
-			String url = constructUrl(deviceIDList, positionsEndpoint);
+//			String positionsEndpoint = "/api/devices?id=";
+			String url = constructUrl(deviceIDList, HttpApi.DEVICE_DETALIS_FEATH_END_POINT);
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.setBasicAuth(username, password);
@@ -154,8 +158,8 @@ public class RestClientService {
 
 		try {
 			ResponseEntity<String> responseEntity = null;
-			String positionsEndpoint = "/check?file=";
-			String url = fileUrl + positionsEndpoint + fileName;
+//			String positionsEndpoint = "/check?file=";
+			String url = fileUrl + HttpApi.CHECK_FILE_END_POINT + fileName;
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.setBasicAuth(username, password);
@@ -171,6 +175,43 @@ public class RestClientService {
 			}
 		} catch (Exception e) {
 			return null;
+		}
+
+	}
+
+	public void sendHttpPostRequestForCommand(CommandSendDetails commandSendDetails) {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			headers.setBasicAuth(username, password);
+
+			Map<String, Object> requestBody = new HashMap<>();
+			Map<String, String> attributes = new HashMap<>();
+
+			attributes.put("data", commandSendDetails.getCommand());
+			requestBody.put("deviceId", commandSendDetails.getDeviceId());
+			requestBody.put("id", "0");
+			requestBody.put("type", "custom");
+			requestBody.put("textChannel", "false");
+			requestBody.put("description", "New…");
+			requestBody.put("attributes", attributes);
+
+			HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+			RestTemplate restTemplate = new RestTemplate();
+
+			ResponseEntity<Object> response = restTemplate.postForEntity(baseUrl + HttpApi.COMMAND_SEND_END_POINT,
+					request, Object.class);
+
+			if (response != null) {
+
+				System.out.println("Inside Response ");
+
+				System.out.println(response);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Some issue for Sending Sms");
 		}
 
 	}

@@ -8,4 +8,6 @@ public interface FileUploadDetailsService {
 
 	void saveFileDetalis(List<CommandSendDetails> saveAllCommandDetalis);
 
+	void updateFlleDetalis();
+
 }
