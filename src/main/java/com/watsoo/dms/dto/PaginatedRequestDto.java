@@ -1,5 +1,7 @@
 package com.watsoo.dms.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 public class PaginatedRequestDto {
 
 	private int pageSize;
@@ -7,14 +9,21 @@ public class PaginatedRequestDto {
 	private int pageNo;
 
 	private String vehicleNo;
-	
+
 	private String vehicleName;
 
 	private String driverName;
 
 	private String eventType;
-	
+
 	private String searchKey;
+
+
+	@JsonFormat(pattern = "yyyy-MM-dd")
+	private String fromDate;
+
+	@JsonFormat(pattern = "yyyy-MM-dd")
+	private String toDate;
 
 	public int getPageSize() {
 		return pageSize;
@@ -63,7 +72,6 @@ public class PaginatedRequestDto {
 	public void setSearchKey(String searchKey) {
 		this.searchKey = searchKey;
 	}
-	
 
 	public String getVehicleName() {
 		return vehicleName;
@@ -73,20 +81,52 @@ public class PaginatedRequestDto {
 		this.vehicleName = vehicleName;
 	}
 
-	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String driverName, String eventType,String searchKey) {
+	
+	
+	public String getFromDate() {
+		return fromDate;
+	}
+
+	public void setFromDate(String fromDate) {
+		this.fromDate = fromDate;
+	}
+
+	public String getToDate() {
+		return toDate;
+	}
+
+	public void setToDate(String toDate) {
+		this.toDate = toDate;
+	}
+
+	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String driverName, String eventType,
+			String searchKey) {
 		this.pageSize = pageSize;
 		this.pageNo = pageNo;
 		this.driverName = driverName;
 		this.eventType = eventType;
 		this.vehicleNo = vehicleNo;
-		this.searchKey=searchKey;
+		this.searchKey = searchKey;
 	}
+
+	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String driverName, String eventType,
+			String searchKey, String fromDate, String toDate) {
+		this.pageSize = pageSize;
+		this.pageNo = pageNo;
+		this.driverName = driverName;
+		this.eventType = eventType;
+		this.vehicleNo = vehicleNo;
+		this.searchKey = searchKey;
+		this.toDate = toDate;
+		this.fromDate = fromDate;
+	}
+
 	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String vehicleName) {
 		this.pageSize = pageSize;
 		this.pageNo = pageNo;
 		this.vehicleName = vehicleName;
 		this.vehicleNo = vehicleNo;
-		
+
 	}
 
 }

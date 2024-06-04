@@ -1,6 +1,7 @@
 package com.watsoo.dms.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +18,7 @@ import jakarta.persistence.criteria.Predicate;
 public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
 	@Query(value = "SELECT * FROM vehicle v WHERE v.device_id IN :deviceIds", nativeQuery = true)
-	List<Vehicle> findVehiclesByDeviceIds(@Param("deviceIds") List<Long> deviceIds);
+	List<Vehicle> findVehiclesByDeviceIds(@Param("deviceIds") Set<Long> deviceIds);
 
 	public static Specification<Vehicle> search(PaginatedRequestDto paginatedRequest) {
 		return (root, cq, cb) -> {

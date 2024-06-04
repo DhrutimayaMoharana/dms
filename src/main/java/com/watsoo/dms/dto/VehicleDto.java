@@ -4,7 +4,6 @@ import java.util.Date;
 
 import com.watsoo.dms.entity.Vehicle;
 
-
 public class VehicleDto {
 	private Long id;
 	private String name;
@@ -14,6 +13,7 @@ public class VehicleDto {
 	private String vehicleNumber;
 	private Integer deviceId;
 	private Date createdOn;
+	private String imeiNo;
 
 	private Date updatedOn;
 
@@ -67,7 +67,7 @@ public class VehicleDto {
 	public void setVehicleNumber(String vehicleNumber) {
 		this.vehicleNumber = vehicleNumber;
 	}
-	
+
 	public Integer getDeviceId() {
 		return deviceId;
 	}
@@ -100,18 +100,27 @@ public class VehicleDto {
 		this.isActive = isActive;
 	}
 
+	public String getImeiNo() {
+		return imeiNo;
+	}
+
+	public void setImeiNo(String imeiNo) {
+		this.imeiNo = imeiNo;
+	}
+
 	public static VehicleDto fromEntity(Vehicle vehicle) {
-        VehicleDto dto = new VehicleDto();
-        dto.setId(vehicle.getId());
-        dto.setName(vehicle.getName());
-        dto.setChassisNumber(vehicle.getChassisNumber());
-        dto.setColor(vehicle.getColor());
-        dto.setEngineNumber(vehicle.getEngineNumber());
-        dto.setVehicleNumber(vehicle.getVehicleNumber());
-        dto.setDeviceId(vehicle.getDeviceId());
-        dto.setCreatedOn(vehicle.getCreatedOn());
-        dto.setUpdatedOn(vehicle.getUpdatedOn());
-        dto.setIsActive(vehicle.getIsActive());
-        return dto;
-    }
+		VehicleDto dto = new VehicleDto();
+		dto.setId(vehicle.getId());
+		dto.setName(vehicle.getName());
+		dto.setChassisNumber(vehicle.getChassisNumber());
+		dto.setColor(vehicle.getColor());
+		dto.setEngineNumber(vehicle.getEngineNumber());
+		dto.setVehicleNumber(vehicle.getVehicleNumber());
+		dto.setDeviceId(vehicle.getDeviceId());
+		dto.setCreatedOn(vehicle.getCreatedOn());
+		dto.setUpdatedOn(vehicle.getUpdatedOn());
+		dto.setIsActive(vehicle.getIsActive());
+		dto.setImeiNo(vehicle.getImeiNo());
+		return dto;
+	}
 }

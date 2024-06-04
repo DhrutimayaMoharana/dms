@@ -7,117 +7,142 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "event")
 public class Event {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    private String vehicleNo;
-  
-    private Long positionId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @Enumerated(EnumType.STRING)
-    private EventType eventType;
+	private String vehicleNo;
 
-    private Date eventTime;
-    
-    private Date eventServerCreateTime;
-    
-    private String evidencePhotos;
-    
-    private String evidenceVideos;
-    
-    private Long deviceId;
+	private Long positionId;
 
-    @Column(name="longitude")
-    private Double longitude;
+	@Enumerated(EnumType.STRING)
+	private EventType eventType;
 
-    @Column(name="latitude")
-    private Double latitude;
-   
-    public Event() {
-    }
+	private Date eventTime;
 
-    // Getters and Setters for all fields
+	private Date eventServerCreateTime;
 
-    public Long getId() {
-        return id;
-    }
+	private String evidencePhotos;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	private String evidenceVideos;
 
-    public String getVehicleNo() {
-        return vehicleNo;
-    }
+	private Long deviceId;
 
-    public void setVehicleNo(String vehicleNo) {
-        this.vehicleNo = vehicleNo;
-    }
-    public Long getPositionId() {
-        return positionId;
-    }
+	@Column(name = "imei_no")
+	private String imeiNo;
 
-    public void setPositionId(Long positionId) {
-        this.positionId = positionId;
-    }
+	@Column(name = "chassis_number")
+	private String chassisNumber;
 
-    public EventType getEventType() {
-        return eventType;
-    }
+	@Column(name = "longitude")
+	private Double longitude;
 
-    public void setEventType(EventType eventType) {
-        this.eventType = eventType;
-    }
+	@Column(name = "latitude")
+	private Double latitude;
 
-    public Date getEventTime() {
-        return eventTime;
-    }
+	@Column(name = "driver_phone")
+	private String driverPhone;
 
-    public void setEventTime(Date eventTime) {
-        this.eventTime = eventTime;
-    }
+	@Column(name = "driver_name")
+	private String driverName;
+	
+	@Column(name = "remark")
+	private String remark;
+	
+	@Column(name = "dl_no")
+	private String dlNo;
+	
+	@Column(name = "updated_on")
+	private Date UpdatedOn;
+	
+	@Column(name = "updated_by")
+	private Long updatedBy;
+	
+	public Event() {
+	}
 
-    public String getEvidencePhotos() {
-        return evidencePhotos;
-    }
+	// Getters and Setters for all fields
 
-    public void setEvidencePhotos(String evidencePhotos) {
-        this.evidencePhotos = evidencePhotos;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public String getEvidenceVideos() {
-        return evidenceVideos;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public void setEvidenceVideos(String evidenceVideos) {
-        this.evidenceVideos = evidenceVideos;
-    }
+	public String getVehicleNo() {
+		return vehicleNo;
+	}
 
-    public Long getDeviceId() {
-        return deviceId;
-    }
+	public void setVehicleNo(String vehicleNo) {
+		this.vehicleNo = vehicleNo;
+	}
 
-    public void setDeviceId(Long deviceId) {
-        this.deviceId = deviceId;
-    }
+	public Long getPositionId() {
+		return positionId;
+	}
 
-    public Double getLongitude() {
-        return longitude;
-    }
+	public void setPositionId(Long positionId) {
+		this.positionId = positionId;
+	}
 
-    public void setLongitude(Double longitude) {
-        this.longitude = longitude;
-    }
+	public EventType getEventType() {
+		return eventType;
+	}
 
-    public Double getLatitude() {
-        return latitude;
-    }
+	public void setEventType(EventType eventType) {
+		this.eventType = eventType;
+	}
 
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
+	public Date getEventTime() {
+		return eventTime;
+	}
+
+	public void setEventTime(Date eventTime) {
+		this.eventTime = eventTime;
+	}
+
+	public String getEvidencePhotos() {
+		return evidencePhotos;
+	}
+
+	public void setEvidencePhotos(String evidencePhotos) {
+		this.evidencePhotos = evidencePhotos;
+	}
+
+	public String getEvidenceVideos() {
+		return evidenceVideos;
+	}
+
+	public void setEvidenceVideos(String evidenceVideos) {
+		this.evidenceVideos = evidenceVideos;
+	}
+
+	public Long getDeviceId() {
+		return deviceId;
+	}
+
+	public void setDeviceId(Long deviceId) {
+		this.deviceId = deviceId;
+	}
+
+	public Double getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(Double longitude) {
+		this.longitude = longitude;
+	}
+
+	public Double getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(Double latitude) {
+		this.latitude = latitude;
+	}
 
 	public Date getEventServerCreateTime() {
 		return eventServerCreateTime;
@@ -126,5 +151,73 @@ public class Event {
 	public void setEventServerCreateTime(Date eventServerCreateTime) {
 		this.eventServerCreateTime = eventServerCreateTime;
 	}
-    
+
+	public String getImeiNo() {
+		return imeiNo;
+	}
+
+	public void setImeiNo(String imeiNo) {
+		this.imeiNo = imeiNo;
+	}
+
+	public String getChassisNumber() {
+		return chassisNumber;
+	}
+
+	public void setChassisNumber(String chassisNumber) {
+		this.chassisNumber = chassisNumber;
+	}
+
+	public String getDriverPhone() {
+		return driverPhone;
+	}
+
+	public void setDriverPhone(String driverPhone) {
+		this.driverPhone = driverPhone;
+	}
+
+	public String getDriverName() {
+		return driverName;
+	}
+
+	public void setDriverName(String driverName) {
+		this.driverName = driverName;
+	}
+
+	public String getRemark() {
+		return remark;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+
+	public Date getUpdatedOn() {
+		return UpdatedOn;
+	}
+
+	public void setUpdatedOn(Date updatedOn) {
+		UpdatedOn = updatedOn;
+	}
+
+	public Long getUpdatedBy() {
+		return updatedBy;
+	}
+
+	public void setUpdatedBy(Long updatedBy) {
+		this.updatedBy = updatedBy;
+	}
+
+	public String getDlNo() {
+		return dlNo;
+	}
+
+	public void setDlNo(String dlNo) {
+		this.dlNo = dlNo;
+	}
+	
+	
+	
+	
+	
 }

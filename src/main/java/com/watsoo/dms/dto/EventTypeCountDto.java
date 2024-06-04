@@ -11,6 +11,10 @@ public class EventTypeCountDto {
 	long lowHeadCount;
 	long drinkingCount;
 	long totalEventCount;
+	int totalActiveVehicle ;
+	int totalInActiveVehicle ;
+	int tamperedDevices ;
+	int countDefaulterDriver;
 
 	public long getYawningCount() {
 		return yawningCount;
@@ -85,6 +89,42 @@ public class EventTypeCountDto {
 	}
 
 	public EventTypeCountDto() {
+	}
+	
+
+	
+	public int getTotalActiveVehicle() {
+		return totalActiveVehicle;
+	}
+
+	public void setTotalActiveVehicle(int totalActiveVehicle) {
+		this.totalActiveVehicle = totalActiveVehicle;
+	}
+
+	public int getTotalInActiveVehicle() {
+		return totalInActiveVehicle;
+	}
+
+	public void setTotalInActiveVehicle(int totalInActiveVehicle) {
+		this.totalInActiveVehicle = totalInActiveVehicle;
+	}
+
+	public int getTamperedDevices() {
+		return tamperedDevices;
+	}
+
+	public void setTamperedDevices(int tamperedDevices) {
+		this.tamperedDevices = tamperedDevices;
+	}
+	
+	
+
+	public int getCountDefaulterDriver() {
+		return countDefaulterDriver;
+	}
+
+	public void setCountDefaulterDriver(int countDefaulterDriver) {
+		this.countDefaulterDriver = countDefaulterDriver;
 	}
 
 	public EventTypeCountDto(long yawningCount, long mobileUsageCount, long distractionCount,

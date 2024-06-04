@@ -27,6 +27,9 @@ public class Driver {
 	
 	private Long vehicle_id;
 	
+	
+	
+	
 	@Column(name = "created_on")
 	private Date createdOn;
 

@@ -5,8 +5,6 @@ import java.util.List;
 
 import com.watsoo.dms.entity.Event;
 
-import jakarta.persistence.Column;
-
 public class EventDto {
 	private Long id;
 	private Long vehicleId;
@@ -15,14 +13,23 @@ public class EventDto {
 	private String eventType;
 	private Date eventTime;
 	private List<String> evidencePhotos;
-	private List<String> evidenceVideos; 
+	private List<String> evidenceVideos;
 	private Date eventServerCreateTime;
 	private Long deviceId;
 	private Double longitude;
 	private Double latitude;
 	private DriverDto driverDto;
-	
-   
+
+	private String driverPhone;
+	private String driverName;
+	private String vehicleNo;
+	private String chassisNumber;
+	private String imeiNo;
+
+	private String remark;
+
+	private Date updateOn;
+
 
 	public Long getId() {
 		return id;
@@ -31,7 +38,6 @@ public class EventDto {
 	public void setId(Long id) {
 		this.id = id;
 	}
-
 
 	public Long getVehicleId() {
 		return vehicleId;
@@ -93,6 +99,7 @@ public class EventDto {
 		super();
 		// TODO Auto-generated constructor stub
 	}
+
 	public Date getEventServerCreateTime() {
 		return eventServerCreateTime;
 	}
@@ -133,16 +140,84 @@ public class EventDto {
 		this.driverDto = driverDto;
 	}
 
+	public String getDriverPhone() {
+		return driverPhone;
+	}
+
+	public void setDriverPhone(String driverPhone) {
+		this.driverPhone = driverPhone;
+	}
+
+	public String getDriverName() {
+		return driverName;
+	}
+
+	public void setDriverName(String driverName) {
+		this.driverName = driverName;
+	}
+
+	public String getVehicleNo() {
+		return vehicleNo;
+	}
+
+	public void setVehicleNo(String vehicleNo) {
+		this.vehicleNo = vehicleNo;
+	}
+
+	public String getChassisNumber() {
+		return chassisNumber;
+	}
+
+	public void setChassisNumber(String chassisNumber) {
+		this.chassisNumber = chassisNumber;
+	}
+
+	public String getImeiNo() {
+		return imeiNo;
+	}
+
+	public void setImeiNo(String imeiNo) {
+		this.imeiNo = imeiNo;
+	}
+	public String getRemark() {
+		return remark;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+
+	public Date getUpdateOn() {
+		return updateOn;
+	}
+
+	public void setUpdateOn(Date updateOn) {
+		this.updateOn = updateOn;
+	}
+
 	public static EventDto fromEntity(Event event) {
+
+		if (event == null) {
+			return null;
+		}
 		EventDto dto = new EventDto();
 		dto.setId(event.getId());
+		dto.setVehicleNo(event.getVehicleNo());
 		dto.setPositionId(event.getPositionId());
-		dto.setEventType(event.getEventType().name());
+		dto.setEventType(event.getEventType().toString());
 		dto.setEventTime(event.getEventTime());
+		dto.setEventServerCreateTime(event.getEventServerCreateTime());
 		dto.setDeviceId(event.getDeviceId());
-		dto.setLatitude(event.getLatitude());
+		dto.setImeiNo(event.getImeiNo());
+		dto.setChassisNumber(event.getChassisNumber());
 		dto.setLongitude(event.getLongitude());
+		dto.setLatitude(event.getLatitude());
+		dto.setDriverPhone(event.getDriverPhone());
+		dto.setDriverName(event.getDriverName());
+		dto.setUpdateOn(event.getUpdatedOn());
+		dto.setRemark(event.getRemark());
 		return dto;
+
 	}
 
 }

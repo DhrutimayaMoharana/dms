@@ -1,11 +1,9 @@
 package com.watsoo.dms.controller;
 
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.watsoo.dms.dto.EventDto;
 import com.watsoo.dms.dto.Response;
 import com.watsoo.dms.service.EventService;
 
@@ -27,8 +26,10 @@ public class EventController {
 	public ResponseEntity<?> getAllExcelFileName(@RequestParam(required = false, defaultValue = "0") int pageSize,
 			@RequestParam(required = false, defaultValue = "0") int pageNo,
 			@RequestParam(required = false) String vehicleNo, @RequestParam(required = false) String driverName,
-			@RequestParam(required = false) String eventType,@RequestParam(required = false) String searchKey) {
-		Response<?> response = eventService.getAllEvent(pageSize, pageNo, vehicleNo, driverName, eventType,searchKey);
+			@RequestParam(required = false) String eventType, @RequestParam(required = false) String searchKey,
+			@RequestParam(required = false) String fromDate, @RequestParam(required = false) String toDate) {
+		Response<?> response = eventService.getAllEvent(pageSize, pageNo, vehicleNo, driverName, eventType, searchKey,
+				fromDate, toDate);
 		return new ResponseEntity<>(response, HttpStatus.valueOf(response.getResponseCode()));
 	}
 
@@ -46,6 +47,31 @@ public class EventController {
 
 	}
 
-	
+	@GetMapping("/get/id")
+	public ResponseEntity<?> getByid(@RequestParam Long eventId) {
+		Response<?> response = eventService.getEventById(eventId);
+		return new ResponseEntity<>(response, HttpStatus.valueOf(response.getResponseCode()));
+
+	}
+
+	@PostMapping("/update")
+	public ResponseEntity<?> updateEvent(@RequestBody EventDto eventDto) {
+		Response<?> response = eventService.updateEvent(eventDto);
+		return new ResponseEntity<>(response, HttpStatus.valueOf(response.getResponseCode()));
+
+	}
+
+	@GetMapping("/v1/dashboard")
+	public ResponseEntity<?> getEventDetalisForDashBoard(@RequestBody EventDto eventDto) {
+		Response<?> response = eventService.getEventDetalisForDashBoard();
+		return new ResponseEntity<>(response, HttpStatus.valueOf(response.getResponseCode()));
+
+	}
+	@GetMapping("/v1/driver/perfomance")
+	public ResponseEntity<?> getDriverPerfomanceByEvent(@RequestParam String value) {
+		Response<?> response = eventService.getEventDetalisForDriverPerfomance(value);
+		return new ResponseEntity<>(response, HttpStatus.valueOf(response.getResponseCode()));
+
+	}
 
 }

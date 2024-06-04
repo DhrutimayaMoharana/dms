@@ -1,6 +1,7 @@
 package com.watsoo.dms.util;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
@@ -47,5 +48,15 @@ public class Utility {
             return null;
         }
     }
+	
+	public static List<String> convertStringToArray(String evidencePhotos) {
+		String[] urlArray = evidencePhotos.split(",");
+		List<String> files = new ArrayList<>();
+
+		for (String url : urlArray) {
+			files.add(url);
+		}
+		return files;
+	}
 	
 }

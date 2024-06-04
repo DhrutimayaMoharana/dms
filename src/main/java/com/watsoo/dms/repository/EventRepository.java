@@ -1,5 +1,9 @@
 package com.watsoo.dms.repository;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -23,6 +27,30 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	public static Specification<Event> search(PaginatedRequestDto paginatedRequest) {
 		return (root, cq, cb) -> {
 			Predicate predicate = cb.conjunction();
+
+			if (paginatedRequest.getFromDate() != null && paginatedRequest.getToDate() != null) {
+			    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+			    try {
+			        Date fromDate = dateFormat.parse(paginatedRequest.getFromDate());
+			        Date toDate = dateFormat.parse(paginatedRequest.getToDate());
+			        
+			        Calendar calendar = Calendar.getInstance();
+					calendar.setTime(toDate);
+					calendar.set(Calendar.HOUR_OF_DAY, 23);
+			        calendar.set(Calendar.MINUTE, 59);
+			        calendar.set(Calendar.SECOND, 59);
+			        calendar.set(Calendar.MILLISECOND, 999);
+			        toDate = calendar.getTime();
+			        // For fromDate and toDate
+			        predicate = cb.and(
+			            predicate,
+			            cb.greaterThanOrEqualTo(root.get("eventServerCreateTime"), fromDate),
+			            cb.lessThanOrEqualTo(root.get("eventServerCreateTime"), toDate)
+			        );
+			    } catch (ParseException e) {
+			    }
+			}
+
 
 			if (paginatedRequest.getDriverName() != null) {
 				predicate = cb.and(predicate, cb.equal(root.get("driverName"), paginatedRequest.getDriverName()));
