@@ -664,8 +664,8 @@ public class EventServiceImp implements EventService {
 		String fromPriviosDateTime = "";
 		String toPriviosDateTime = "";
 
-		String fromThisDateTime = "";
-		String toThisDateTime = "";
+		String fromCurrentDateTime = "";
+		String toThisCurrentDateTime = "";
 
 		if (value == null) {
 			return new Response<>("Value Must Be required", null, 400);
@@ -701,39 +701,42 @@ public class EventServiceImp implements EventService {
 				calendar.add(Calendar.DAY_OF_WEEK, 6); // Move to last day of current week
 				Date currentWeekEndDate = calendar.getTime();
 
-				String formattedPreviousMonthStartDate = dateFormat.format(previousWeekStartDate);
-				String formattedCurrentMonthEndDate = dateFormat.format(previousWeekEndDate);
+				String formattedPreviousWeekStartDate = dateFormat.format(previousWeekStartDate);
+				String formattedPreviousWeekEndDate = dateFormat.format(previousWeekEndDate);
 
-				fromDate = formattedPreviousMonthStartDate + " " + addedFromTime;
-				toDate = formattedCurrentMonthEndDate + " " + addedToTime;
+				String formattedCurrentWeekStartDate = dateFormat.format(currentWeekStartDate);
+				String formattedCurrentWeekEndDate = dateFormat.format(previousWeekEndDate);
 
+				fromPriviosDateTime = formattedPreviousWeekStartDate + " " + addedFromTime;
+				toPriviosDateTime = formattedPreviousWeekEndDate + " " + addedToTime;
+
+				fromCurrentDateTime = formattedCurrentWeekStartDate + " " + addedFromTime;
+				toThisCurrentDateTime = formattedCurrentWeekEndDate + " " + addedToTime;
+
+				fromDate = formattedPreviousWeekStartDate + " " + addedFromTime;
+				toDate = formattedCurrentWeekEndDate + " " + addedToTime;
+
+			} else if (value.equals(Constant.LAST_TWO_DAYS)) {
+
+				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+				Calendar calendar = Calendar.getInstance();
+				Date todayEndDate = calendar.getTime();
+				String formattedTodayEndDate = dateFormat.format(todayEndDate);
+				calendar.set(Calendar.HOUR_OF_DAY, 0);
+				calendar.set(Calendar.MINUTE, 0);
+				calendar.set(Calendar.SECOND, 0);
+				Date todayStartDate = calendar.getTime();
+				String formattedTodayStartDate = dateFormat.format(todayStartDate);
+				calendar.add(Calendar.DAY_OF_YEAR, -1);
+				Date yesterdayEndDate = calendar.getTime();
+				String formattedYesterdayEndDate = dateFormat.format(yesterdayEndDate);
+				calendar.set(Calendar.HOUR_OF_DAY, 0);
+				calendar.set(Calendar.MINUTE, 0);
+				calendar.set(Calendar.SECOND, 0);
+				Date yesterdayStartDate = calendar.getTime();
+				String formattedYesterdayStartDate = dateFormat.format(yesterdayStartDate);
 			}
 
-			else if (value.equals(Constant.THIS_MONTH)) {
-				Calendar calendar = Calendar.getInstance();
-				calendar.set(Calendar.DAY_OF_MONTH, 1);
-				Date startDate = calendar.getTime();
-				calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
-				Date endDate = calendar.getTime();
-				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-				String formattedStartDate = dateFormat.format(startDate);
-				String formattedEndDate = dateFormat.format(endDate);
-				fromDate = formattedStartDate + " " + addedFromTime;
-				toDate = formattedEndDate + " " + addedToTime;
-
-			} else if (value.equals(Constant.LAST_MONTH)) {
-				Calendar calendar = Calendar.getInstance();
-				calendar.set(Calendar.DAY_OF_MONTH, 1);
-				calendar.add(Calendar.MONTH, -1);
-				Date lastMonthStartDate = calendar.getTime();
-				calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
-				Date lastMonthEndDate = calendar.getTime();
-				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-				String formattedLastMonthStartDate = dateFormat.format(lastMonthStartDate);
-				String formattedLastMonthEndDate = dateFormat.format(lastMonthEndDate);
-				fromDate = formattedLastMonthStartDate + " " + addedFromTime;
-				toDate = formattedLastMonthEndDate + " " + addedToTime;
-			}
 			List<Event> findEventsBetweenDates = eventRepository.findEventsBetweenDates(fromDate, toDate);
 			Map<String, List<Event>> categorizeEventsByDlNo = categorizeEventsByDlNo(findEventsBetweenDates);
 			Map<String, Integer> monthWiseTotalCountEvent = getMonthWiseTotalCountEvent(findEventsBetweenDates);
