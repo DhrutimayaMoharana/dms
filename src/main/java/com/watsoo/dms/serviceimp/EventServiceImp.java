@@ -661,6 +661,12 @@ public class EventServiceImp implements EventService {
 		String addedFromTime = "00:00:00";
 		String addedToTime = "23:59:59";
 
+		String fromPriviosDateTime = "";
+		String toPriviosDateTime = "";
+
+		String fromThisDateTime = "";
+		String toThisDateTime = "";
+
 		if (value == null) {
 			return new Response<>("Value Must Be required", null, 400);
 		}
@@ -679,7 +685,31 @@ public class EventServiceImp implements EventService {
 				String formattedCurrentMonthEndDate = dateFormat.format(currentMonthEndDate);
 				fromDate = formattedPreviousMonthStartDate + " " + addedFromTime;
 				toDate = formattedCurrentMonthEndDate + " " + addedToTime;
-			} else if (value.equals(Constant.THIS_MONTH)) {
+			} else if (value.equals(Constant.LAST_TWO_WEEK)) {
+
+				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+				// Calculate date range for last two weeks
+				Calendar calendar = Calendar.getInstance();
+				calendar.add(Calendar.WEEK_OF_YEAR, -1); // Move to last week
+				calendar.set(Calendar.DAY_OF_WEEK, calendar.getFirstDayOfWeek()); // Move to first day of last week
+				Date previousWeekStartDate = calendar.getTime();
+				calendar.add(Calendar.DAY_OF_WEEK, 6); // Move to last day of last week
+				Date previousWeekEndDate = calendar.getTime();
+				calendar.add(Calendar.DAY_OF_WEEK, 1); // Move to first day of current week
+				Date currentWeekStartDate = calendar.getTime();
+				calendar.add(Calendar.DAY_OF_WEEK, 6); // Move to last day of current week
+				Date currentWeekEndDate = calendar.getTime();
+
+				String formattedPreviousMonthStartDate = dateFormat.format(previousWeekStartDate);
+				String formattedCurrentMonthEndDate = dateFormat.format(previousWeekEndDate);
+
+				fromDate = formattedPreviousMonthStartDate + " " + addedFromTime;
+				toDate = formattedCurrentMonthEndDate + " " + addedToTime;
+
+			}
+
+			else if (value.equals(Constant.THIS_MONTH)) {
 				Calendar calendar = Calendar.getInstance();
 				calendar.set(Calendar.DAY_OF_MONTH, 1);
 				Date startDate = calendar.getTime();

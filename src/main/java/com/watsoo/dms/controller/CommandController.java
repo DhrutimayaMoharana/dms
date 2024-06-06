@@ -26,8 +26,9 @@ public class CommandController {
 	public ResponseEntity<?> getAllCommands(@RequestParam(required = false, defaultValue = "0") Integer pageSize,
 			@RequestParam(required = false, defaultValue = "0") Integer pageNo,
 			@RequestParam(required = false) String fromDate, @RequestParam(required = false) String toDate,
-			@RequestParam(required = false) String deviceModel) {
-		Response<?> response = commandService.getAllCommands(pageSize, pageNo, deviceModel);
+			@RequestParam(required = false) String deviceModel, @RequestParam(required = false) Long vechileId,
+			@RequestParam(required = false) String imeiNumber) {
+		Response<?> response = commandService.getAllCommands(pageSize, pageNo, deviceModel, vechileId, imeiNumber);
 		return new ResponseEntity<>(response, HttpStatus.valueOf(response.getResponseCode()));
 	}
 

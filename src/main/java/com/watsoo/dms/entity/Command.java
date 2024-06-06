@@ -31,9 +31,14 @@ public class Command implements Serializable {
 	@Column(name = "description")
 	private String description;
 
-	@OneToOne
-	@JoinColumn(name = "command_type_id")
-	private CommandType commandType;
+	@Column(name = "imei_number")
+	private String imeiNumber;
+
+	@Column(name = "vechile_id")
+	private Long vechileId;
+
+	@Column(name = "end_command")
+	private String endCommand;
 
 	public Long getId() {
 		return id;
@@ -67,16 +72,32 @@ public class Command implements Serializable {
 		this.description = description;
 	}
 
-	public CommandType getCommandType() {
-		return commandType;
+	public String getImeiNumber() {
+		return imeiNumber;
 	}
 
-	public void setCommandType(CommandType commandType) {
-		this.commandType = commandType;
+	public void setImeiNumber(String imeiNumber) {
+		this.imeiNumber = imeiNumber;
+	}
+
+	public Long getVechileId() {
+		return vechileId;
+	}
+
+	public void setVechileId(Long vechileId) {
+		this.vechileId = vechileId;
 	}
 
 	public static long getSerialversionuid() {
 		return serialVersionUID;
+	}
+
+	public String getEndCommand() {
+		return endCommand;
+	}
+
+	public void setEndCommand(String endCommand) {
+		this.endCommand = endCommand;
 	}
 
 	public Command() {

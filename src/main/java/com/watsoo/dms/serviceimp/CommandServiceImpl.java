@@ -32,9 +32,10 @@ public class CommandServiceImpl implements CommandService {
 	private CommandTypeRepository commandTypeRepository;
 
 	@Override
-	public Response<?> getAllCommands(int pageSize, int pageNo,String deviceModel) {
+	public Response<?> getAllCommands(int pageSize, int pageNo, String deviceModel, Long vechileId, String imeiNumber) {
 		try {
-			PaginatedRequestDto paginatedRequest = new PaginatedRequestDto(pageSize, pageNo,deviceModel);
+			PaginatedRequestDto paginatedRequest = new PaginatedRequestDto(pageSize, pageNo, deviceModel, vechileId,
+					imeiNumber);
 			Pageable pageable = pageSize > 0 ? PageRequest.of(pageNo, pageSize) : Pageable.unpaged();
 			Page<Command> commandPage = commandRepository.findAll(paginatedRequest, pageable);
 			List<CommandDto> listOfCommand = commandPage.getContent().stream().map(CommandDto::entityToDto)
@@ -61,29 +62,15 @@ public class CommandServiceImpl implements CommandService {
 		if (validateCommandDto != null) {
 			return validateCommandDto;
 		}
+		Command findByCommandAndVechileId = commandRepository.findByCommandAndVechileId(commandDto.getBaseCommand(),
+				commandDto.getVechile_id());
 
-		CommandType commandType = new CommandType();
-
-		Optional<CommandType> findById = commandTypeRepository
-				.findById(Long.valueOf(commandDto.getCommandTypeDTO().getId()));
-		if (findById.isPresent()) {
-			commandType = findById.get();
-		} else {
-
-			if (commandDto.getCommandTypeDTO().getName() == null) {
-				return new Response<>("Command Type Needed ", null, 400);
-			}
-
-			commandType.setName(commandDto.getCommandTypeDTO().getName());
-			commandType.setUpdatedOn(new Date());
-			commandType.setCreateOn(new Date());
-			commandType = commandTypeRepository.save(commandType);
+		if (findByCommandAndVechileId != null) {
+			return new Response<>("Command Already Exit ", null, 400);
 		}
 
 		Command command = CommandDto.dtoToEntity(commandDto);
-		command.setCommandType(commandType);
 		commandRepository.save(command);
-
 		return new Response<>("Success", null, 200);
 
 	}

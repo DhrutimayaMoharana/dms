@@ -21,8 +21,10 @@ public class PaginatedRequestDto {
 	private String dlNumber;
 
 	private String deviceModel;
-	
+
 	private String imeiNumber;
+
+	private Long vechileId;
 
 	@JsonFormat(pattern = "yyyy-MM-dd")
 	private String fromDate;
@@ -126,6 +128,14 @@ public class PaginatedRequestDto {
 		this.imeiNumber = imeiNumber;
 	}
 
+	public Long getVechileId() {
+		return vechileId;
+	}
+
+	public void setVechileId(Long vechileId) {
+		this.vechileId = vechileId;
+	}
+
 	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String driverName, String eventType,
 			String searchKey) {
 		this.pageSize = pageSize;
@@ -161,12 +171,12 @@ public class PaginatedRequestDto {
 		this.dlNumber = dlNumber;
 	}
 
-	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String vehicleName,String imeiNumber) {
+	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String vehicleName, String imeiNumber) {
 		this.pageSize = pageSize;
 		this.pageNo = pageNo;
 		this.vehicleName = vehicleName;
 		this.vehicleNo = vehicleNo;
-		this.imeiNumber=imeiNumber;
+		this.imeiNumber = imeiNumber;
 
 	}
 
@@ -176,10 +186,12 @@ public class PaginatedRequestDto {
 
 	}
 
-	public PaginatedRequestDto(int pageSize, int pageNo, String deviceModel) {
+	public PaginatedRequestDto(int pageSize, int pageNo, String deviceModel, Long vechileId, String imeiNumber) {
 		this.pageSize = pageSize;
 		this.pageNo = pageNo;
 		this.deviceModel = deviceModel;
+		this.vechileId = vechileId;
+		this.imeiNumber = imeiNumber;
 
 	}
 

@@ -1,6 +1,5 @@
 package com.watsoo.dms.repository;
 
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -9,11 +8,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.watsoo.dms.dto.PaginatedRequestDto;
 import com.watsoo.dms.entity.Command;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.criteria.Predicate;
 
 public interface CommandRepository extends JpaRepository<Command, Long> {
 
-	
+	Command findByCommandAndVechileId(String command, Long vechileId);
 
 	public static Specification<Command> search(PaginatedRequestDto paginatedRequest) {
 		return (root, cq, cb) -> {
@@ -23,7 +23,14 @@ public interface CommandRepository extends JpaRepository<Command, Long> {
 				predicate = cb.and(predicate,
 						cb.equal(root.get("ddevicModelNumber"), paginatedRequest.getDeviceModel()));
 			}
+			if (paginatedRequest.getVechileId() != null) {
+				predicate = cb.and(predicate, cb.equal(root.get("vechile_id"), paginatedRequest.getVechileId()));
+			}
 
+			if (paginatedRequest.getImeiNumber() != null) {
+
+				predicate = cb.and(predicate, cb.equal(root.get("imeiNumber"), paginatedRequest.getImeiNumber()));
+			}
 			return predicate;
 		};
 	}

@@ -54,26 +54,29 @@ public class Validation {
 	}
 
 	public static Response<?> validateCommandDto(CommandDto command) {
-		if (command.getCommand() == null || command.getCommand().isEmpty()) {
+		if (command.getBaseCommand() == null || command.getBaseCommand().isEmpty()) {
 			return new Response<>("Command is required", null, 400);
 		}
-
-		if (command.getCommandTypeDTO() == null || command.getCommandTypeDTO().getId() == null ) {
-			return new Response<>("CommandType is required", null, 400);
-		}
-		if (command.getCommandTypeDTO() == null ||  command.getCommandTypeDTO().getName() == null) {
-			return new Response<>("CommandType is required", null, 400);
-		}
 		
+		if (command.getBaseCommand() == null || command.getBaseCommand().isEmpty()) {
+			return new Response<>("End Command is required", null, 400);
+		}
+
+		if (command.getVechile_id() == null) {
+			return new Response<>("Vechile id is required", null, 400);
+		}
+
+		if (command.getImeiNumber() == null) {
+			return new Response<>("Imei Number is required", null, 400);
+		}
+
 		if (command.getDescription() == null) {
 			return new Response<>("Description is required", null, 400);
 
 		}
 		if (command.getDeviceModelNumber() == null) {
 			return new Response<>("Device Model Number is required", null, 400);
-
 		}
-
 		return null;
 	}
 

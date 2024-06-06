@@ -7,7 +7,8 @@ public class Constant {
 	public static final String THIS_WEEK = "This Week";
 	public static final String LAST_MONTH = "Last Month";
 	public static final String TILL_TODAY = "Till Today";
-	public static final String LAST_TWO_MONTHS = "LAST_TWO_MONTHS";
+	public static final String LAST_TWO_MONTHS = "Last Two Months";
+	public static final String LAST_TWO_WEEK = "Last Two Weeks";
 	
 	
 	public static final String ALARM_CLOSE_EYES = "closeEyes";

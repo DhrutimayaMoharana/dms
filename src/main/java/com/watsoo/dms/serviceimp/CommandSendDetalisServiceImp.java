@@ -34,6 +34,7 @@ import com.watsoo.dms.repository.CommandRepository;
 import com.watsoo.dms.repository.CommandSendDetalisRepository;
 import com.watsoo.dms.restclient.RestClientService;
 import com.watsoo.dms.service.CommandSendDetalisService;
+import com.watsoo.dms.service.CommandSendTrailService;
 import com.watsoo.dms.service.FileUploadDetailsService;
 import com.watsoo.dms.util.Utility;
 
@@ -52,6 +53,10 @@ public class CommandSendDetalisServiceImp implements CommandSendDetalisService {
 	@Autowired
 	private CommandRepository commandRepository;
 
+	
+	@Autowired
+	private CommandSendTrailService commandSendTrailService;
+	
 	@Override
 	public void saveCommandDetalis(List<Event> allEvent, Map<Long, String> deviceWithProtocolName) {
 		List<CommandSendDetails> commandSendDetailsList = new ArrayList<>();
@@ -128,8 +133,9 @@ public class CommandSendDetalisServiceImp implements CommandSendDetalisService {
 			commandSendDetails.setCommand(commanddetalisSendDto.getCommand());
 
 			restClientService.sendHttpPostRequestForCommand(commandSendDetails);
-
 		}
+		
+		commandSendTrailService.saveManualCommand(commanddetalisSendDto);
 
 		return new Response<>("Command Send Successfully", null, 200);
 

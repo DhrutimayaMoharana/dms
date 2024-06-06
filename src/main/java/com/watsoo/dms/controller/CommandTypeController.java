@@ -29,13 +29,6 @@ public class CommandTypeController {
 		Response<?> response = commandTypeService.createCommandType(commandTypeDTO);
 		return new ResponseEntity<>(response, HttpStatus.valueOf(response.getResponseCode()));
 	}
-
-	@PutMapping("/{id}")
-	public ResponseEntity<?> updateCommandType(@PathVariable Integer id, @RequestBody CommandTypeDTO commandTypeDTO) {
-		Response<?> response = commandTypeService.updateCommandType(id, commandTypeDTO);
-		return new ResponseEntity<>(response, HttpStatus.valueOf(response.getResponseCode()));
-	}
-
 	@GetMapping("/{id}")
 	public ResponseEntity<?> getCommandTypeById(@PathVariable Integer id) {
 		Response<?> response = commandTypeService.getCommandTypeById(id);

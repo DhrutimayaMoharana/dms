@@ -25,6 +25,9 @@ public class CommanddetalisSendDto {
 	private LocalDateTime reCallOn;
 	private Integer reCallCount;
 	private String endCommand;
+	private Long vechileId;
+
+	private Long userId;
 
 	public Long getId() {
 		return id;
@@ -170,53 +173,68 @@ public class CommanddetalisSendDto {
 		this.endCommand = endCommand;
 	}
 
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public Long getVechileId() {
+		return vechileId;
+	}
+
+	public void setVechileId(Long vechileId) {
+		this.vechileId = vechileId;
+	}
+
 	public CommanddetalisSendDto() {
 		super();
 	}
 
-	 public static CommanddetalisSendDto entityToDto(CommandSendDetails commandSendDetails) {
-	        CommanddetalisSendDto dto = new CommanddetalisSendDto();
-	        dto.setId(commandSendDetails.getId());
-	        dto.setDeviceId(commandSendDetails.getDeviceId());
-	        dto.setImeiNumber(commandSendDetails.getImeiNumber());
-	        dto.setEventId(commandSendDetails.getEventId());
-	        dto.setEventType(commandSendDetails.getEventType());
-	        dto.setPositionId(commandSendDetails.getPositionId());
-	        dto.setEvidenceFiles(commandSendDetails.getEvedenceFiles()); // Note the spelling change here
-	        dto.setBaseCommand(commandSendDetails.getBaseCommand());
-	        dto.setCommand(commandSendDetails.getCommand());
-	        dto.setCommandResponse(commandSendDetails.getCommandRespone()); // Note the spelling change here
+	public static CommanddetalisSendDto entityToDto(CommandSendDetails commandSendDetails) {
+		CommanddetalisSendDto dto = new CommanddetalisSendDto();
+		dto.setId(commandSendDetails.getId());
+		dto.setDeviceId(commandSendDetails.getDeviceId());
+		dto.setImeiNumber(commandSendDetails.getImeiNumber());
+		dto.setEventId(commandSendDetails.getEventId());
+		dto.setEventType(commandSendDetails.getEventType());
+		dto.setPositionId(commandSendDetails.getPositionId());
+		dto.setEvidenceFiles(commandSendDetails.getEvedenceFiles()); // Note the spelling change here
+		dto.setBaseCommand(commandSendDetails.getBaseCommand());
+		dto.setCommand(commandSendDetails.getCommand());
+		dto.setCommandResponse(commandSendDetails.getCommandRespone()); // Note the spelling change here
 //	        dto.setStatus(commandSendDetails.getStatus().name());
-	        dto.setVehicleStatus(commandSendDetails.getVehicleStatus());
-	        dto.setNoOfFileReq(commandSendDetails.getNoOfFileReq());
-	        dto.setNoOfFileUploaded(commandSendDetails.getNoOfFileUploaded());
-	        dto.setCreateOn(commandSendDetails.getCreateOn());
-	        dto.setReCallOn(commandSendDetails.getReCallOn());
-	        dto.setReCallCount(commandSendDetails.getReCallCount());
-	        return dto;
-	    }
-	
-	 
-	 public static CommandSendDetails dtoToEntity(CommanddetalisSendDto dto) {
-	        CommandSendDetails entity = new CommandSendDetails();
-	        entity.setId(dto.getId());
-	        entity.setDeviceId(dto.getDeviceId());
-	        entity.setImeiNumber(dto.getImeiNumber());
-	        entity.setEventId(dto.getEventId());
-	        entity.setEventType(dto.getEventType());
-	        entity.setPositionId(dto.getPositionId());
-	        entity.setEvedenceFiles(dto.getEvidenceFiles()); // Note the spelling change here
-	        entity.setBaseCommand(dto.getBaseCommand());
-	        entity.setCommand(dto.getCommand());
-	        entity.setCommandRespone(dto.getCommandResponse()); // Note the spelling change here
-	        entity.setStatus(CommandStatus.valueOf(dto.getStatus())); // Assuming CommandStatus is an enum
-	        entity.setVehicleStatus(dto.getVehicleStatus());
-	        entity.setNoOfFileReq(dto.getNoOfFileReq());
-	        entity.setNoOfFileUploaded(dto.getNoOfFileUploaded());
-	        entity.setCreateOn(dto.getCreateOn());
-	        entity.setReCallOn(dto.getReCallOn());
-	        entity.setReCallCount(dto.getReCallCount());
-	        return entity;
-	    }
+		dto.setVehicleStatus(commandSendDetails.getVehicleStatus());
+		dto.setNoOfFileReq(commandSendDetails.getNoOfFileReq());
+		dto.setNoOfFileUploaded(commandSendDetails.getNoOfFileUploaded());
+		dto.setCreateOn(commandSendDetails.getCreateOn());
+		dto.setReCallOn(commandSendDetails.getReCallOn());
+		dto.setReCallCount(commandSendDetails.getReCallCount());
+		return dto;
+	}
+
+	public static CommandSendDetails dtoToEntity(CommanddetalisSendDto dto) {
+		CommandSendDetails entity = new CommandSendDetails();
+		entity.setId(dto.getId());
+		entity.setDeviceId(dto.getDeviceId());
+		entity.setImeiNumber(dto.getImeiNumber());
+		entity.setEventId(dto.getEventId());
+		entity.setEventType(dto.getEventType());
+		entity.setPositionId(dto.getPositionId());
+		entity.setEvedenceFiles(dto.getEvidenceFiles()); // Note the spelling change here
+		entity.setBaseCommand(dto.getBaseCommand());
+		entity.setCommand(dto.getCommand());
+		entity.setCommandRespone(dto.getCommandResponse()); // Note the spelling change here
+		entity.setStatus(CommandStatus.valueOf(dto.getStatus())); // Assuming CommandStatus is an enum
+		entity.setVehicleStatus(dto.getVehicleStatus());
+		entity.setNoOfFileReq(dto.getNoOfFileReq());
+		entity.setNoOfFileUploaded(dto.getNoOfFileUploaded());
+		entity.setCreateOn(dto.getCreateOn());
+		entity.setReCallOn(dto.getReCallOn());
+		entity.setReCallCount(dto.getReCallCount());
+		return entity;
+	}
 
 }

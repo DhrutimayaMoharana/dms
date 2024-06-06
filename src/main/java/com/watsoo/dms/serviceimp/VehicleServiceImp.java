@@ -27,7 +27,7 @@ public class VehicleServiceImp implements VehicleService {
 			String imeiNumber) {
 		try {
 			PaginatedRequestDto paginatedRequest = new PaginatedRequestDto(pageSize, pageNo, vehicleNumber,
-					vehicleName,imeiNumber);
+					vehicleName,imeiNumber);	
 
 			Pageable pageable = pageSize > 0 ? PageRequest.of(pageNo, pageSize) : Pageable.unpaged();
 

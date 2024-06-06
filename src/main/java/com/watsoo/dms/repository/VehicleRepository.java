@@ -30,6 +30,9 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 			if (paginatedRequest.getVehicleNo() != null) {
 				predicate = cb.and(predicate, cb.equal(root.get("vehicleNumber"), paginatedRequest.getVehicleNo()));
 			}
+			if (paginatedRequest.getImeiNumber() != null) {
+				predicate = cb.and(predicate, cb.equal(root.get("imeiNo"), paginatedRequest.getImeiNumber()));
+			}
 
 			return predicate;
 		};
