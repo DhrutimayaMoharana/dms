@@ -1,6 +1,10 @@
 package com.watsoo.dms.serviceimp;
 
+import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -8,6 +12,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
@@ -37,7 +42,6 @@ import com.watsoo.dms.dto.PaginatedResponseDto;
 import com.watsoo.dms.dto.Response;
 import com.watsoo.dms.entity.Configuration;
 import com.watsoo.dms.entity.Event;
-import com.watsoo.dms.entity.Remark;
 import com.watsoo.dms.entity.Vehicle;
 import com.watsoo.dms.enums.EventType;
 import com.watsoo.dms.repository.ConfigurationRepository;
@@ -71,7 +75,7 @@ public class EventServiceImp implements EventService {
 
 	@Autowired
 	private RemarkRepository remarkRepository;
-	
+
 	@Autowired
 	private CommandSendDetalisService commandSendDetalisService;
 
@@ -140,11 +144,11 @@ public class EventServiceImp implements EventService {
 
 	@Override
 	public Response<?> getAllEvent(int pageSize, int pageNo, String vehicleNo, String driverName, String eventType,
-			String searchKey, String fromDate, String toDate) {
+			String searchKey, String fromDate, String toDate, String dlNumber) {
 
 		try {
 			PaginatedRequestDto paginatedRequest = new PaginatedRequestDto(pageSize, pageNo, vehicleNo, driverName,
-					eventType, searchKey, fromDate, toDate);
+					eventType, searchKey, fromDate, toDate, dlNumber);
 			Pageable pageable = pageSize > 0 ? PageRequest.of(pageNo, pageSize) : Pageable.unpaged();
 			Page<Event> findAllEvent = eventRepository.findAll(paginatedRequest, pageable);
 			List<Event> events = findAllEvent.getContent();
@@ -190,7 +194,10 @@ public class EventServiceImp implements EventService {
 //
 //					fromEventToEventDto.setDeviceInformationDto(retrieveDeviceInfoMap.get(event.getDeviceId()));
 //				}
-				eventsdto.add(fromEventToEventDto);
+
+				if (!event.getEventType().equals(EventType.POWER_CUT)) {
+					eventsdto.add(fromEventToEventDto);
+				}
 			}
 
 			PaginatedResponseDto<Object> paginatedResponseDto = new PaginatedResponseDto<>(eventRepository.count(),
@@ -267,7 +274,7 @@ public class EventServiceImp implements EventService {
 
 		}
 		EventTypeCountDto eventTypeCountDto = new EventTypeCountDto(yawningCount, mobileUsageCount, distractionCount,
-				smokingCount, closeEyesCount, noFaceCount, lowHeadCount, drinkingCount, totalEventCount);
+				smokingCount, closeEyesCount, noFaceCount, lowHeadCount, drinkingCount, allEvents.size());
 		eventTypeCountDto.setTamperedDevices(tamperedDevices);
 		eventTypeCountDto.setCountDefaulterDriver(countDefaulterDriver);
 		return eventTypeCountDto;
@@ -530,7 +537,7 @@ public class EventServiceImp implements EventService {
 						Long positionId = event.get("positionId").getAsLong();
 						eventObject.setDeviceId(event.get("deviceId").getAsLong());
 						eventObject.setPositionId(positionId);
-
+						eventObject.setEventId(event.get("id").getAsLong());
 						// Its update When Vechile Service call
 						// -->
 						eventObject.setDriverName("Virat");
@@ -555,6 +562,7 @@ public class EventServiceImp implements EventService {
 
 		}
 
+		Map<Long, String> deviceWithProtocolName = new HashMap<>();
 		String positions = "";
 		if (positionIdList != null && positionIdList.size() > 0) {
 			positions = restClientService.getPositions(positionIdList);
@@ -579,6 +587,12 @@ public class EventServiceImp implements EventService {
 								event.setEvidencePhotos(evidenceFiles);
 								eventsDataMap.put(positionId, event);
 
+								if (positionData.has("protocol")) {
+									deviceWithProtocolName.put(event.getDeviceId(),
+											positionData.get("protocol").getAsString());
+
+								}
+
 							}
 
 						}
@@ -601,13 +615,11 @@ public class EventServiceImp implements EventService {
 			});
 
 			List<Event> saveAll = eventRepository.saveAll(values);
-			
-			if(saveAll!=null && saveAll.size()>0) {
-				commandSendDetalisService.saveCommandDetalis(saveAll);
-				
+
+			if (saveAll != null && saveAll.size() > 0) {
+				commandSendDetalisService.saveCommandDetalis(saveAll, deviceWithProtocolName);
+
 			}
-			
-			
 
 		}
 
@@ -628,13 +640,7 @@ public class EventServiceImp implements EventService {
 			if (eventDto.getRemark() != null) {
 				event.setRemark(eventDto.getRemark());
 				eventRepository.save(event);
-				Remark remark = remarkRepository.findByStatus(eventDto.getRemark());
-				if (remark == null) {
-					remark.setCreatedOn(new Date());
-					remark.setStatus(eventDto.getRemark());
-					remark.setUpdatedOn(new Date());
-					remarkRepository.save(remark);
-				}
+
 			}
 
 		}
@@ -659,71 +665,140 @@ public class EventServiceImp implements EventService {
 			return new Response<>("Value Must Be required", null, 400);
 		}
 
-		if (value.equals(Constant.LAST_TWO_MONTHS)) {
-			Calendar calendar = Calendar.getInstance();
-			calendar.add(Calendar.MONTH, -1);
-			calendar.set(Calendar.DAY_OF_MONTH, 1);
-			Date previousMonthStartDate = calendar.getTime();
-			calendar = Calendar.getInstance();
-			calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
-			Date currentMonthEndDate = calendar.getTime();
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-			String formattedPreviousMonthStartDate = dateFormat.format(previousMonthStartDate);
-			String formattedCurrentMonthEndDate = dateFormat.format(currentMonthEndDate);
-			fromDate = formattedPreviousMonthStartDate + " " + addedFromTime;
-			toDate = formattedCurrentMonthEndDate + " " + addedToTime;
-		} else if (value.equals(Constant.THIS_MONTH)) {
-			Calendar calendar = Calendar.getInstance();
-			calendar.set(Calendar.DAY_OF_MONTH, 1);
-			Date startDate = calendar.getTime();
-			calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
-			Date endDate = calendar.getTime();
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-			String formattedStartDate = dateFormat.format(startDate);
-			String formattedEndDate = dateFormat.format(endDate);
-			fromDate = formattedStartDate + " " + addedFromTime;
-			toDate = formattedEndDate + " " + addedToTime;
+		try {
+			if (value.equals(Constant.LAST_TWO_MONTHS)) {
+				Calendar calendar = Calendar.getInstance();
+				calendar.add(Calendar.MONTH, -1);
+				calendar.set(Calendar.DAY_OF_MONTH, 1);
+				Date previousMonthStartDate = calendar.getTime();
+				calendar = Calendar.getInstance();
+				calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+				Date currentMonthEndDate = calendar.getTime();
+				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+				String formattedPreviousMonthStartDate = dateFormat.format(previousMonthStartDate);
+				String formattedCurrentMonthEndDate = dateFormat.format(currentMonthEndDate);
+				fromDate = formattedPreviousMonthStartDate + " " + addedFromTime;
+				toDate = formattedCurrentMonthEndDate + " " + addedToTime;
+			} else if (value.equals(Constant.THIS_MONTH)) {
+				Calendar calendar = Calendar.getInstance();
+				calendar.set(Calendar.DAY_OF_MONTH, 1);
+				Date startDate = calendar.getTime();
+				calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+				Date endDate = calendar.getTime();
+				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+				String formattedStartDate = dateFormat.format(startDate);
+				String formattedEndDate = dateFormat.format(endDate);
+				fromDate = formattedStartDate + " " + addedFromTime;
+				toDate = formattedEndDate + " " + addedToTime;
 
-		} else if (value.equals(Constant.LAST_MONTH)) {
-			Calendar calendar = Calendar.getInstance();
-			calendar.set(Calendar.DAY_OF_MONTH, 1);
-			calendar.add(Calendar.MONTH, -1);
-			Date lastMonthStartDate = calendar.getTime();
-			calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
-			Date lastMonthEndDate = calendar.getTime();
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-			String formattedLastMonthStartDate = dateFormat.format(lastMonthStartDate);
-			String formattedLastMonthEndDate = dateFormat.format(lastMonthEndDate);
-			fromDate = formattedLastMonthStartDate + " " + addedFromTime;
-			toDate = formattedLastMonthEndDate + " " + addedToTime;
-		}
-		List<Event> findEventsBetweenDates = eventRepository.findEventsBetweenDates(fromDate, toDate);
-		Map<String, List<Event>> categorizeEventsByDlNo = categorizeEventsByDlNo(findEventsBetweenDates);
-		Map<String, Map<String, Integer>> driverEvenntCountMonth = new HashMap<>();
-		for (String dlNumber : categorizeEventsByDlNo.keySet()) {
-			
-			List<Event> list = categorizeEventsByDlNo.get(dlNumber);
-			Map<String, Integer> countEventsByMonth = countEventsByMonth(list);
-			driverEvenntCountMonth.put(list.get(0).getDriverName() + " (" + dlNumber+ ")", countEventsByMonth);
+			} else if (value.equals(Constant.LAST_MONTH)) {
+				Calendar calendar = Calendar.getInstance();
+				calendar.set(Calendar.DAY_OF_MONTH, 1);
+				calendar.add(Calendar.MONTH, -1);
+				Date lastMonthStartDate = calendar.getTime();
+				calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+				Date lastMonthEndDate = calendar.getTime();
+				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+				String formattedLastMonthStartDate = dateFormat.format(lastMonthStartDate);
+				String formattedLastMonthEndDate = dateFormat.format(lastMonthEndDate);
+				fromDate = formattedLastMonthStartDate + " " + addedFromTime;
+				toDate = formattedLastMonthEndDate + " " + addedToTime;
+			}
+			List<Event> findEventsBetweenDates = eventRepository.findEventsBetweenDates(fromDate, toDate);
+			Map<String, List<Event>> categorizeEventsByDlNo = categorizeEventsByDlNo(findEventsBetweenDates);
+			Map<String, Integer> monthWiseTotalCountEvent = getMonthWiseTotalCountEvent(findEventsBetweenDates);
+			Map<String, Map<String, Double>> driverEvenntCountMonth = new HashMap<>();
 
+			for (String dlNumber : categorizeEventsByDlNo.keySet()) {
+
+				List<Event> list = categorizeEventsByDlNo.get(dlNumber);
+				Map<String, Double> countEventsByMonth = countEventsByMonth(list, monthWiseTotalCountEvent);
+				driverEvenntCountMonth.put(list.get(0).getDriverName() + " (" + dlNumber + ")", countEventsByMonth);
+
+			}
+			return new Response<>("Success", driverEvenntCountMonth, 200);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new Response<>("Some Thing Went Wrong", null, 400);
 		}
-		return new Response<>("Success", driverEvenntCountMonth, 200);
 	}
 
-	public static Map<String, Integer> countEventsByMonth(List<Event> eventList) {
+	public static Map<String, Double> countEventsByMonth(List<Event> eventList,
+			Map<String, Integer> monthWiseTotalCountEvent) {
 		Map<String, Integer> eventCountByMonth = new HashMap<>();
 		Calendar calendar = Calendar.getInstance();
+
+		String currentMonthName = getCurrentMonthName();
+		String previousMonthName = getPreviousMonthName();
 
 		for (Event event : eventList) {
 			calendar.setTime(event.getEventServerCreateTime());
 			int month = calendar.get(Calendar.MONTH);
 			int year = calendar.get(Calendar.YEAR);
 			String monthName = Month.getMonthName(month);
-			String key = monthName + " " + year;
+			String key = "";
+			if (currentMonthName.equalsIgnoreCase(monthName)) {
+				key = "THIS_MONTH";
+			}
+			if (previousMonthName.equalsIgnoreCase(monthName)) {
+				key = "PRIVIOUS_MONTH";
+			}
 			eventCountByMonth.put(key, eventCountByMonth.getOrDefault(key, 0) + 1);
 		}
 
-		return eventCountByMonth;
+		Map<String, Double> eventCountByMonthWise = new HashMap<>();
+
+		for (String monthName : eventCountByMonth.keySet()) {
+
+			Integer baseMonthEvent = monthWiseTotalCountEvent.get(monthName);
+			Integer actualEvent = eventCountByMonth.get(monthName);
+
+			eventCountByMonthWise.put(monthName, calculatePerformance(actualEvent, baseMonthEvent));
+
+		}
+
+		return eventCountByMonthWise;
+	}
+
+	public Map<String, Integer> getMonthWiseTotalCountEvent(List<Event> allEvents) {
+		Map<String, Integer> monthCount = new HashMap<>();
+		String currentMonthName = getCurrentMonthName();
+		String previousMonthName = getPreviousMonthName();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM", Locale.ENGLISH);
+
+		// Iterate through each event in the list
+		for (Event event : allEvents) {
+			LocalDateTime eventTime = event.getEventServerCreateTime().toInstant().atZone(ZoneId.systemDefault())
+					.toLocalDateTime();
+
+			String month = eventTime.format(formatter); // Format as "MonthName Year"
+
+			if (currentMonthName.equalsIgnoreCase(month)) {
+				month = "THIS_MONTH";
+			}
+			if (previousMonthName.equalsIgnoreCase(month)) {
+				month = "PRIVIOUS_MONTH";
+			}
+
+			monthCount.put(month, monthCount.getOrDefault(month, 0) + 1);
+		}
+		return monthCount;
+	}
+
+	public static double calculatePerformance(int actualEvents, int baseMonthEvents) {
+		return ((double) actualEvents / baseMonthEvents) * 100;
+	}
+
+	public static String getCurrentMonthName() {
+		Calendar calendar = Calendar.getInstance();
+		int month = calendar.get(Calendar.MONTH);
+		return new DateFormatSymbols().getMonths()[month];
+	}
+
+	public static String getPreviousMonthName() {
+		Calendar calendar = Calendar.getInstance();
+		int previousMonth = (calendar.get(Calendar.MONTH) - 1 + 12) % 12;
+		return new DateFormatSymbols().getMonths()[previousMonth];
 	}
 
 }

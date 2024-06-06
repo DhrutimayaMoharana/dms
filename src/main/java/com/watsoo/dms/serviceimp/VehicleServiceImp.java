@@ -23,10 +23,11 @@ public class VehicleServiceImp implements VehicleService {
 	@Autowired
 	private VehicleRepository vehicleRepository;
 
-	public Response<?> getAllVehicle(int pageSize, int pageNo, String vehicleNumber, String vehicleName) {
+	public Response<?> getAllVehicle(int pageSize, int pageNo, String vehicleNumber, String vehicleName,
+			String imeiNumber) {
 		try {
 			PaginatedRequestDto paginatedRequest = new PaginatedRequestDto(pageSize, pageNo, vehicleNumber,
-					vehicleName);
+					vehicleName,imeiNumber);
 
 			Pageable pageable = pageSize > 0 ? PageRequest.of(pageNo, pageSize) : Pageable.unpaged();
 

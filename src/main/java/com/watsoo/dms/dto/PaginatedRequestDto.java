@@ -18,6 +18,11 @@ public class PaginatedRequestDto {
 
 	private String searchKey;
 
+	private String dlNumber;
+
+	private String deviceModel;
+	
+	private String imeiNumber;
 
 	@JsonFormat(pattern = "yyyy-MM-dd")
 	private String fromDate;
@@ -81,8 +86,6 @@ public class PaginatedRequestDto {
 		this.vehicleName = vehicleName;
 	}
 
-	
-	
 	public String getFromDate() {
 		return fromDate;
 	}
@@ -97,6 +100,30 @@ public class PaginatedRequestDto {
 
 	public void setToDate(String toDate) {
 		this.toDate = toDate;
+	}
+
+	public String getDlNumber() {
+		return dlNumber;
+	}
+
+	public void setDlNumber(String dlNumber) {
+		this.dlNumber = dlNumber;
+	}
+
+	public String getDeviceModel() {
+		return deviceModel;
+	}
+
+	public void setDeviceModel(String deviceModel) {
+		this.deviceModel = deviceModel;
+	}
+
+	public String getImeiNumber() {
+		return imeiNumber;
+	}
+
+	public void setImeiNumber(String imeiNumber) {
+		this.imeiNumber = imeiNumber;
 	}
 
 	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String driverName, String eventType,
@@ -121,11 +148,38 @@ public class PaginatedRequestDto {
 		this.fromDate = fromDate;
 	}
 
-	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String vehicleName) {
+	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String driverName, String eventType,
+			String searchKey, String fromDate, String toDate, String dlNumber) {
+		this.pageSize = pageSize;
+		this.pageNo = pageNo;
+		this.driverName = driverName;
+		this.eventType = eventType;
+		this.vehicleNo = vehicleNo;
+		this.searchKey = searchKey;
+		this.toDate = toDate;
+		this.fromDate = fromDate;
+		this.dlNumber = dlNumber;
+	}
+
+	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String vehicleName,String imeiNumber) {
 		this.pageSize = pageSize;
 		this.pageNo = pageNo;
 		this.vehicleName = vehicleName;
 		this.vehicleNo = vehicleNo;
+		this.imeiNumber=imeiNumber;
+
+	}
+
+	public PaginatedRequestDto(int pageSize, int pageNo) {
+		this.pageSize = pageSize;
+		this.pageNo = pageNo;
+
+	}
+
+	public PaginatedRequestDto(int pageSize, int pageNo, String deviceModel) {
+		this.pageSize = pageSize;
+		this.pageNo = pageNo;
+		this.deviceModel = deviceModel;
 
 	}
 

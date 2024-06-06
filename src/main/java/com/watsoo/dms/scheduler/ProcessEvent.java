@@ -65,7 +65,7 @@ public class ProcessEvent {
 	@Value("${scheduler.interval.second}")
 	int schedulerTime;
 
-	@Scheduled(fixedRate = 1000)
+//	@Scheduled(fixedRate = 1000)
 	public void processEvent() {
 		if (lock.tryLock()) {
 			try {
@@ -88,7 +88,7 @@ public class ProcessEvent {
 							if (eventFromTime.isPresent()) {
 								Configuration configuration = eventFromTime.get();
 								configuration.setValue(toTime);
-								// configurationRepository.save(configuration);
+								 configurationRepository.save(configuration);
 							}
 						}
 					}
@@ -119,7 +119,7 @@ public class ProcessEvent {
 						processSleepTime = Integer.valueOf(configuration.getValue());
 					}
 				}
-				commandSendDetalisService.sendCommand(reCallCount,processSleepTime);
+//				commandSendDetalisService.sendCommand(reCallCount,processSleepTime);
 				fileUploadDetailsService.updateFlleDetalis();
 				
 //				scheduleNextRun(processCommand * 1000L);

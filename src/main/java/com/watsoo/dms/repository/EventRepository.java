@@ -51,6 +51,11 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			    }
 			}
 
+			
+
+			if (paginatedRequest.getDlNumber() != null) {
+				predicate = cb.and(predicate, cb.equal(root.get("dlNo"), paginatedRequest.getDlNumber()));
+			}
 
 			if (paginatedRequest.getDriverName() != null) {
 				predicate = cb.and(predicate, cb.equal(root.get("driverName"), paginatedRequest.getDriverName()));

@@ -21,8 +21,9 @@ public class VehicleController {
 	@GetMapping("/getall")
 	public ResponseEntity<?> getAllExcelFileName(@RequestParam(required = false, defaultValue = "0") int pageSize,
 			@RequestParam(required = false, defaultValue = "0") int pageNo,
-			@RequestParam(required = false) String vehicleNumber, @RequestParam(required = false) String vehicleName){
-		Response<?> response = vehicleService.getAllVehicle(pageSize, pageNo, vehicleNumber, vehicleName);
+			@RequestParam(required = false) String vehicleNumber, @RequestParam(required = false) String vehicleName,
+			@RequestParam(required = false) String imeiNumber) {
+		Response<?> response = vehicleService.getAllVehicle(pageSize, pageNo, vehicleNumber, vehicleName,imeiNumber);
 		return new ResponseEntity<>(response, HttpStatus.valueOf(response.getResponseCode()));
 	}
 

@@ -25,6 +25,9 @@ public class EventDto {
 	private String vehicleNo;
 	private String chassisNumber;
 	private String imeiNo;
+	private String dlNumber;
+	
+	private String registrationCertificate;
 
 	private String remark;
 
@@ -195,6 +198,24 @@ public class EventDto {
 		this.updateOn = updateOn;
 	}
 
+	public String getDlNumber() {
+		return dlNumber;
+	}
+
+	public void setDlNumber(String dlNumber) {
+		this.dlNumber = dlNumber;
+	}
+	
+	
+
+	public String getRegistrationCertificate() {
+		return registrationCertificate;
+	}
+
+	public void setRegistrationCertificate(String registrationCertificate) {
+		this.registrationCertificate = registrationCertificate;
+	}
+
 	public static EventDto fromEntity(Event event) {
 
 		if (event == null) {
@@ -216,6 +237,8 @@ public class EventDto {
 		dto.setDriverName(event.getDriverName());
 		dto.setUpdateOn(event.getUpdatedOn());
 		dto.setRemark(event.getRemark());
+		dto.setDlNumber(event.getDlNo());
+		dto.setRegistrationCertificate("ABCSDAD");
 		return dto;
 
 	}

@@ -2,6 +2,8 @@ package com.watsoo.dms.serviceimp;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,8 +11,10 @@ import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.watsoo.dms.entity.Command;
 import com.watsoo.dms.entity.CommandSendDetails;
 import com.watsoo.dms.entity.FileUploadDetails;
+import com.watsoo.dms.repository.CommandSendDetalisRepository;
 import com.watsoo.dms.repository.FileUploadDetailsRepository;
 import com.watsoo.dms.restclient.RestClientService;
 import com.watsoo.dms.service.FileUploadDetailsService;
@@ -21,6 +25,9 @@ public class FileUploadDetailsServiceImp implements FileUploadDetailsService {
 
 	@Autowired
 	private FileUploadDetailsRepository fileUploadDetailsRepository;
+
+	@Autowired
+	private CommandSendDetalisRepository commandSendDetalisRepository;
 
 	@Value("${file.dawnload.url}")
 	String fileDawnloadUrl;
@@ -57,27 +64,42 @@ public class FileUploadDetailsServiceImp implements FileUploadDetailsService {
 	@Override
 	public void updateFlleDetalis() {
 
-		List<FileUploadDetails> findByIsFileExistIsNullOrIsFileExistFalse = fileUploadDetailsRepository
-				.findByIsFileExistIsNullOrIsFileExistFalse();
+		try {
 
-		if (findByIsFileExistIsNullOrIsFileExistFalse != null && findByIsFileExistIsNullOrIsFileExistFalse.size() > 0) {
-			for (FileUploadDetails fileDetails : findByIsFileExistIsNullOrIsFileExistFalse) {
+			List<FileUploadDetails> findByIsFileExistIsNullOrIsFileExistFalse = fileUploadDetailsRepository
+					.findByIsFileExistIsNullOrIsFileExistFalse();
 
-				boolean isFileExit = false;
-				String filePresentOrNot = restClientService.getFilePresentOrNot(fileDetails.getFileName());
-				Gson gson = new Gson();
-				JsonObject resposnse = gson.fromJson(filePresentOrNot, JsonObject.class);
-				if (resposnse.has("code")) {
-					String responseCode = resposnse.get("code").getAsString();
-					if (responseCode.equals("200")) {
-						isFileExit = true;
+			if (findByIsFileExistIsNullOrIsFileExistFalse != null
+					&& findByIsFileExistIsNullOrIsFileExistFalse.size() > 0) {
+
+				Set<Long> commandIds = findByIsFileExistIsNullOrIsFileExistFalse.stream()
+						.map(FileUploadDetails::getCommandSendId).collect(Collectors.toSet());
+
+				List<CommandSendDetails> findAllByIdIn = commandSendDetalisRepository.findAllByIdIn(commandIds);
+
+				for (FileUploadDetails fileDetails : findByIsFileExistIsNullOrIsFileExistFalse) {
+
+					boolean isFileExit = false;
+					String filePresentOrNot = restClientService.getFilePresentOrNot(fileDetails.getFileName());
+					Gson gson = new Gson();
+					JsonObject resposnse = gson.fromJson(filePresentOrNot, JsonObject.class);
+					if (resposnse!=null &&  resposnse.has("code")) {
+						String responseCode = resposnse.get("code").getAsString();
+						if (responseCode.equals("200")) {
+
+							fileDetails.getCommandSendId();
+
+							isFileExit = true;
+						}
 					}
-				}
-				fileDetails.setIsFileExist(isFileExit);
+					fileDetails.setIsFileExist(isFileExit);
 
+				}
+				fileUploadDetailsRepository.saveAll(findByIsFileExistIsNullOrIsFileExistFalse);
 			}
-			fileUploadDetailsRepository
-					.saveAll(findByIsFileExistIsNullOrIsFileExistFalse);
+
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 	}

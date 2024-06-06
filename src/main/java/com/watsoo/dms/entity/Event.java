@@ -46,19 +46,25 @@ public class Event {
 
 	@Column(name = "driver_name")
 	private String driverName;
-	
+
 	@Column(name = "remark")
 	private String remark;
-	
-	@Column(name = "dl_no")
+
+	@Column(name = "dl_number")
 	private String dlNo;
-	
+
+	@Transient
+	private String registrationCertificate;
+
 	@Column(name = "updated_on")
 	private Date UpdatedOn;
-	
+
 	@Column(name = "updated_by")
 	private Long updatedBy;
-	
+
+	@Column(name = "event_id")
+	private Long eventId;
+
 	public Event() {
 	}
 
@@ -215,9 +221,21 @@ public class Event {
 	public void setDlNo(String dlNo) {
 		this.dlNo = dlNo;
 	}
-	
-	
-	
-	
-	
+
+	public String getRegistrationCertificate() {
+		return registrationCertificate;
+	}
+
+	public void setRegistrationCertificate(String registrationCertificate) {
+		this.registrationCertificate = registrationCertificate;
+	}
+
+	public Long getEventId() {
+		return eventId;
+	}
+
+	public void setEventId(Long eventId) {
+		this.eventId = eventId;
+	}
+
 }

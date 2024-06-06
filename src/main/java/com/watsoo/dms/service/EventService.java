@@ -9,7 +9,7 @@ import com.watsoo.dms.entity.Vehicle;
 public interface EventService {
 
 	Response<?> getAllEvent(int pageSize, int pageNo, String vehicleNo, String driverName, String eventType,
-			String SearchKey,String fromDate,String toDate);
+			String SearchKey,String fromDate,String toDate,String dlNumber);
 
 	Response<?> fetchDashBoardCounts(String value);
 
