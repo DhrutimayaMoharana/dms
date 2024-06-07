@@ -27,7 +27,6 @@ import com.watsoo.dms.dto.DeviceInformationDto;
 import com.watsoo.dms.dto.PaginatedRequestDto;
 import com.watsoo.dms.dto.PaginatedResponseDto;
 import com.watsoo.dms.dto.Response;
-import com.watsoo.dms.entity.Command;
 import com.watsoo.dms.entity.CommandSendDetails;
 import com.watsoo.dms.entity.Event;
 import com.watsoo.dms.repository.CommandRepository;
@@ -53,10 +52,9 @@ public class CommandSendDetalisServiceImp implements CommandSendDetalisService {
 	@Autowired
 	private CommandRepository commandRepository;
 
-	
 	@Autowired
 	private CommandSendTrailService commandSendTrailService;
-	
+
 	@Override
 	public void saveCommandDetalis(List<Event> allEvent, Map<Long, String> deviceWithProtocolName) {
 		List<CommandSendDetails> commandSendDetailsList = new ArrayList<>();
@@ -77,6 +75,8 @@ public class CommandSendDetalisServiceImp implements CommandSendDetalisService {
 				obj.setPositionId(event.getPositionId());
 				obj.setCreateOn(LocalDateTime.now());
 				obj.setImeiNumber(event.getImeiNo());
+				obj.setUpdatedOn(LocalDateTime.now());
+				
 
 				List<String> convertStringToArray = Utility.convertStringToArray(event.getEvidencePhotos());
 				obj.setNoOfFileReq(convertStringToArray.size());
@@ -134,7 +134,7 @@ public class CommandSendDetalisServiceImp implements CommandSendDetalisService {
 
 			restClientService.sendHttpPostRequestForCommand(commandSendDetails);
 		}
-		
+
 		commandSendTrailService.saveManualCommand(commanddetalisSendDto);
 
 		return new Response<>("Command Send Successfully", null, 200);
@@ -143,6 +143,8 @@ public class CommandSendDetalisServiceImp implements CommandSendDetalisService {
 
 	@Override
 	public void sendCommand(int reCallCount, int processSleepTime) {
+		
+		try {
 		List<CommandSendDetails> allCommands = commandSendDetalisRepository.findAll();
 
 		if (allCommands != null && !allCommands.isEmpty()) {
@@ -158,7 +160,7 @@ public class CommandSendDetalisServiceImp implements CommandSendDetalisService {
 			Map<Long, List<CommandSendDetails>> deviceIdWithMap = new HashMap<>();
 			for (CommandSendDetails commandSendDetails : allCommands) {
 
-				if (commandSendDetails.getReCallCount() == null || commandSendDetails.getReCallCount() <= reCallCount) {
+				if (commandSendDetails.getReCallCount() == null || commandSendDetails.getReCallCount() < reCallCount) {
 					if (retrieveDeviceInfoMap != null
 							&& retrieveDeviceInfoMap.get(commandSendDetails.getDeviceId()) != null && "online"
 									.equals(retrieveDeviceInfoMap.get(commandSendDetails.getDeviceId()).getStatus())) {
@@ -171,31 +173,40 @@ public class CommandSendDetalisServiceImp implements CommandSendDetalisService {
 							: commandSendDetails.getReCallCount() + 1;
 					commandSendDetails.setReCallCount(countRecall);
 					commandSendDetails.setReCallOn(LocalDateTime.now());
+					commandSendDetails.setUpdatedOn(LocalDateTime.now());
 
 				}
 
 			}
-			commandSendDetalisRepository.saveAll(allCommands);
-			processCommand(deviceIdWithMap, processSleepTime);
+
+			if (deviceIdWithMap != null && !deviceIdWithMap.isEmpty()) {
+				commandSendDetalisRepository.saveAll(allCommands);
+				processCommand(deviceIdWithMap, processSleepTime);
+			}
+		}
+		}catch (Exception e) {
+		
 		}
 	}
 
 	public void processCommand(Map<Long, List<CommandSendDetails>> deviceIdWithMap, int processSleepTime) {
-		
+
 		ExecutorService executorService = Executors.newFixedThreadPool(deviceIdWithMap.size());
 
 		CountDownLatch latch = new CountDownLatch(deviceIdWithMap.values().stream().mapToInt(List::size).sum());
 
 		for (Map.Entry<Long, List<CommandSendDetails>> entry : deviceIdWithMap.entrySet()) {
-			Long deviceId = entry.getKey();
 			List<CommandSendDetails> commandList = entry.getValue();
 
 			executorService.submit(() -> {
 				for (CommandSendDetails commandSendDetails : commandList) {
 
-					restClientService.sendHttpPostRequestForCommand(commandSendDetails);
+					if (commandSendDetails.getNoOfFileUploaded() == null
+							|| commandSendDetails.getNoOfFileUploaded() > 0) {
+						restClientService.sendHttpPostRequestForCommand(commandSendDetails);
 
-					System.out.println(LocalDateTime.now().toLocalTime());
+						
+					}
 
 					try {
 						Thread.sleep(processSleepTime * 1000);

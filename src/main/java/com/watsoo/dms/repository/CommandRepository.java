@@ -13,7 +13,7 @@ import jakarta.persistence.criteria.Predicate;
 
 public interface CommandRepository extends JpaRepository<Command, Long> {
 
-	Command findByCommandAndVechileId(String command, Long vechileId);
+	Command findByBaseCommandAndVechileId(String command, Long vechileId);
 
 	public static Specification<Command> search(PaginatedRequestDto paginatedRequest) {
 		return (root, cq, cb) -> {

@@ -1,7 +1,10 @@
 package com.watsoo.dms.serviceimp;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -11,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.watsoo.dms.entity.Command;
 import com.watsoo.dms.entity.CommandSendDetails;
 import com.watsoo.dms.entity.FileUploadDetails;
 import com.watsoo.dms.repository.CommandSendDetalisRepository;
@@ -43,18 +45,20 @@ public class FileUploadDetailsServiceImp implements FileUploadDetailsService {
 
 			List<String> convertStringToArray = Utility.convertStringToArray(commandSendDetails.getEvedenceFiles());
 
-			for (String fileName : convertStringToArray) {
-				FileUploadDetails obj = new FileUploadDetails();
-				obj.setCommandSendId(commandSendDetails.getId());
-				obj.setFileDownloadUrl(fileDawnloadUrl);
-				obj.setFileName(fileName);
-//				String filePresentOrNot = restClientService.getFilePresentOrNot(fileName);
-				boolean isFileExit = false;
-				obj.setIsFileExist(isFileExit);
-				fileUploadList.add(obj);
+			if (commandSendDetails.getReCallCount() == null || commandSendDetails.getReCallCount() == 0) {
+				for (String fileName : convertStringToArray) {
+					FileUploadDetails obj = new FileUploadDetails();
+					obj.setCommandSendId(commandSendDetails.getId());
+					obj.setFileDownloadUrl(fileDawnloadUrl);
+					obj.setFileName(fileName);
+					obj.setCreatedOn(new Date());
+					obj.setUpdatedOn(new Date());
+					boolean isFileExit = false;
+					obj.setIsFileExist(isFileExit);
+					fileUploadList.add(obj);
 
+				}
 			}
-
 		}
 		if (fileUploadList != null && fileUploadList.size() > 0) {
 			List<FileUploadDetails> saveAll = fileUploadDetailsRepository.saveAll(fileUploadList);
@@ -75,7 +79,11 @@ public class FileUploadDetailsServiceImp implements FileUploadDetailsService {
 				Set<Long> commandIds = findByIsFileExistIsNullOrIsFileExistFalse.stream()
 						.map(FileUploadDetails::getCommandSendId).collect(Collectors.toSet());
 
-				List<CommandSendDetails> findAllByIdIn = commandSendDetalisRepository.findAllByIdIn(commandIds);
+				List<CommandSendDetails> commandDetalisByCommandId = commandSendDetalisRepository
+						.findAllByIdIn(commandIds);
+
+				Map<Long, CommandSendDetails> commandDetalisMapWIthId = commandDetalisByCommandId.stream()
+						.collect(Collectors.toMap(CommandSendDetails::getId, detail -> detail));
 
 				for (FileUploadDetails fileDetails : findByIsFileExistIsNullOrIsFileExistFalse) {
 
@@ -83,19 +91,30 @@ public class FileUploadDetailsServiceImp implements FileUploadDetailsService {
 					String filePresentOrNot = restClientService.getFilePresentOrNot(fileDetails.getFileName());
 					Gson gson = new Gson();
 					JsonObject resposnse = gson.fromJson(filePresentOrNot, JsonObject.class);
-					if (resposnse!=null &&  resposnse.has("code")) {
+					if (resposnse != null && resposnse.has("code")) {
 						String responseCode = resposnse.get("code").getAsString();
 						if (responseCode.equals("200")) {
 
-							fileDetails.getCommandSendId();
+							CommandSendDetails commandSendDetails = commandDetalisMapWIthId
+									.get(fileDetails.getCommandSendId());
+							commandSendDetails.setNoOfFileUploaded(commandSendDetails.getNoOfFileUploaded() != null
+									? (commandSendDetails.getNoOfFileUploaded() + 1)
+									: 0 + 1);
+							commandSendDetails.setUpdatedOn(LocalDateTime.now());
+							commandDetalisMapWIthId.put(fileDetails.getCommandSendId(), commandSendDetails);
 
 							isFileExit = true;
 						}
 					}
 					fileDetails.setIsFileExist(isFileExit);
+					fileDetails.setUpdatedOn(new Date());
 
 				}
 				fileUploadDetailsRepository.saveAll(findByIsFileExistIsNullOrIsFileExistFalse);
+				if (commandDetalisMapWIthId != null && commandDetalisMapWIthId.values() != null) {
+					commandSendDetalisRepository.saveAll(commandDetalisMapWIthId.values());
+
+				}
 			}
 
 		} catch (Exception e) {

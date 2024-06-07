@@ -21,7 +21,7 @@ import jakarta.persistence.criteria.Predicate;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
 
-	@Query(value = "SELECT * FROM event e WHERE e.event_time BETWEEN :startDate AND :endDate", nativeQuery = true)
+	@Query(value = "SELECT * FROM event e WHERE DATE(e.event_server_create_time) BETWEEN :startDate AND :endDate", nativeQuery = true)
 	List<Event> findEventsBetweenDates(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
 	public static Specification<Event> search(PaginatedRequestDto paginatedRequest) {
@@ -29,29 +29,24 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			Predicate predicate = cb.conjunction();
 
 			if (paginatedRequest.getFromDate() != null && paginatedRequest.getToDate() != null) {
-			    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-			    try {
-			        Date fromDate = dateFormat.parse(paginatedRequest.getFromDate());
-			        Date toDate = dateFormat.parse(paginatedRequest.getToDate());
-			        
-			        Calendar calendar = Calendar.getInstance();
+				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+				try {
+					Date fromDate = dateFormat.parse(paginatedRequest.getFromDate());
+					Date toDate = dateFormat.parse(paginatedRequest.getToDate());
+
+					Calendar calendar = Calendar.getInstance();
 					calendar.setTime(toDate);
 					calendar.set(Calendar.HOUR_OF_DAY, 23);
-			        calendar.set(Calendar.MINUTE, 59);
-			        calendar.set(Calendar.SECOND, 59);
-			        calendar.set(Calendar.MILLISECOND, 999);
-			        toDate = calendar.getTime();
-			        // For fromDate and toDate
-			        predicate = cb.and(
-			            predicate,
-			            cb.greaterThanOrEqualTo(root.get("eventServerCreateTime"), fromDate),
-			            cb.lessThanOrEqualTo(root.get("eventServerCreateTime"), toDate)
-			        );
-			    } catch (ParseException e) {
-			    }
+					calendar.set(Calendar.MINUTE, 59);
+					calendar.set(Calendar.SECOND, 59);
+					calendar.set(Calendar.MILLISECOND, 999);
+					toDate = calendar.getTime();
+					// For fromDate and toDate
+					predicate = cb.and(predicate, cb.greaterThanOrEqualTo(root.get("eventServerCreateTime"), fromDate),
+							cb.lessThanOrEqualTo(root.get("eventServerCreateTime"), toDate));
+				} catch (ParseException e) {
+				}
 			}
-
-			
 
 			if (paginatedRequest.getDlNumber() != null) {
 				predicate = cb.and(predicate, cb.equal(root.get("dlNo"), paginatedRequest.getDlNumber()));

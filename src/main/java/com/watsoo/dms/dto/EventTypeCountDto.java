@@ -15,6 +15,8 @@ public class EventTypeCountDto {
 	int totalInActiveVehicle ;
 	int tamperedDevices ;
 	int countDefaulterDriver;
+	Integer pendingRemark ;
+	Integer actionTakenRemark ;
 
 	public long getYawningCount() {
 		return yawningCount;
@@ -125,6 +127,23 @@ public class EventTypeCountDto {
 
 	public void setCountDefaulterDriver(int countDefaulterDriver) {
 		this.countDefaulterDriver = countDefaulterDriver;
+	}
+	
+
+	public Integer getPendingRemark() {
+		return pendingRemark;
+	}
+
+	public void setPendingRemark(Integer pendingRemark) {
+		this.pendingRemark = pendingRemark;
+	}
+
+	public Integer getActionTakenRemark() {
+		return actionTakenRemark;
+	}
+
+	public void setActionTakenRemark(Integer actionTakenRemark) {
+		this.actionTakenRemark = actionTakenRemark;
 	}
 
 	public EventTypeCountDto(long yawningCount, long mobileUsageCount, long distractionCount,

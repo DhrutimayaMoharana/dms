@@ -1,15 +1,13 @@
 package com.watsoo.dms.entity;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -27,6 +25,12 @@ public class Command implements Serializable {
 
 	@Column(name = "command")
 	private String command;
+	
+	@Column(name = "base_command")
+	private String baseCommand;
+	
+	@Column(name = "command_detalis")
+	private String commandDetail;
 
 	@Column(name = "description")
 	private String description;
@@ -39,6 +43,12 @@ public class Command implements Serializable {
 
 	@Column(name = "end_command")
 	private String endCommand;
+	
+	@Column(name = "created_on")
+	private Date createdOn;
+	
+	@Column(name = "updated_on")
+	private Date updatedOn;
 
 	public Long getId() {
 		return id;
@@ -98,6 +108,39 @@ public class Command implements Serializable {
 
 	public void setEndCommand(String endCommand) {
 		this.endCommand = endCommand;
+	}
+	
+
+	public String getBaseCommand() {
+		return baseCommand;
+	}
+
+	public void setBaseCommand(String baseCommand) {
+		this.baseCommand = baseCommand;
+	}
+
+	public String getCommandDetail() {
+		return commandDetail;
+	}
+
+	public void setCommandDetail(String commandDetail) {
+		this.commandDetail = commandDetail;
+	}
+
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public Date getUpdatedOn() {
+		return updatedOn;
+	}
+
+	public void setUpdatedOn(Date updatedOn) {
+		this.updatedOn = updatedOn;
 	}
 
 	public Command() {

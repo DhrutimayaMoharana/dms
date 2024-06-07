@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.watsoo.dms.constant.HttpApi;
 import com.watsoo.dms.entity.CommandSendDetails;
 
@@ -204,14 +205,42 @@ public class RestClientService {
 
 			if (response != null) {
 
-				System.out.println("Inside Response ");
+				System.out.println("Inside Rest Calling  ");
 
-				System.out.println(response);
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Some issue for Sending Sms");
+		}
+
+	}
+
+	public Object getPositionFrom(Long deviceId, String fromDate, String toDate) {
+		try {
+			ResponseEntity<String> responseEntity = null;
+			String url = baseUrl + HttpApi.POISITIONS + "/?deviceId=" + deviceId;
+
+			url = url + "&from=" + fromDate + "&to=" + toDate;
+			HttpHeaders headers = new HttpHeaders();
+			headers.setBasicAuth(username, password);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			headers.set("cache-control", "no-cache");
+
+			HttpEntity<String> entity = new HttpEntity<>(headers);
+			responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+
+			if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+
+				return null;
+			} else {
+
+				ObjectMapper objectMapper = new ObjectMapper();
+
+				return objectMapper.readValue(responseEntity.getBody(), Object.class);
+			}
+		} catch (Exception e) {
+			return null;
 		}
 
 	}

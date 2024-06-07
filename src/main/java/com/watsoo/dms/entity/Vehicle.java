@@ -36,6 +36,9 @@ public class Vehicle {
 
 	@Column(name = "is_active")
 	private Boolean isActive;
+	
+	@Column(name = "model")
+	private String model;
     
     public String getImeiNo() {
 		return imeiNo;
@@ -134,7 +137,16 @@ public class Vehicle {
 
 	public void setIsActive(Boolean isActive) {
 		this.isActive = isActive;
+	}
+
+	public String getModel() {
+		return model;
+	}
+
+	public void setModel(String model) {
+		this.model = model;
 	}   
+	
 	
 	
    

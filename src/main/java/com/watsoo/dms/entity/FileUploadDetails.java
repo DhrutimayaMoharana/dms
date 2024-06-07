@@ -1,5 +1,8 @@
 package com.watsoo.dms.entity;
 
+import java.util.Date;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,6 +26,12 @@ public class FileUploadDetails {
 	private Boolean isFileExist;
 
 	private Double fileSize;
+
+	@Column(name = "created_on")
+	private Date createdOn;
+
+	@Column(name = "updated_on")
+	private Date updatedOn;
 
 	public Long getId() {
 		return id;
@@ -71,5 +80,23 @@ public class FileUploadDetails {
 	public void setFileSize(Double fileSize) {
 		this.fileSize = fileSize;
 	}
+
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public Date getUpdatedOn() {
+		return updatedOn;
+	}
+
+	public void setUpdatedOn(Date updatedOn) {
+		this.updatedOn = updatedOn;
+	}
+	
+	
 
 }

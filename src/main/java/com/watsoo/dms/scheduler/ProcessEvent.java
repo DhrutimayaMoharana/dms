@@ -3,6 +3,7 @@ package com.watsoo.dms.scheduler;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
@@ -50,7 +51,7 @@ public class ProcessEvent {
 
 	@Autowired
 	private CommandSendDetalisService commandSendDetalisService;
-	
+
 	@Autowired
 	private FileUploadDetailsService fileUploadDetailsService;
 
@@ -64,6 +65,13 @@ public class ProcessEvent {
 
 	@Value("${scheduler.interval.second}")
 	int schedulerTime;
+
+	Date currentTime = new Date();
+
+	boolean firstCall = true;;
+
+//	@Autowired
+//	private ScheduledExecutorService scheduledExecutorService;
 
 //	@Scheduled(fixedRate = 1000)
 	public void processEvent() {
@@ -88,7 +96,7 @@ public class ProcessEvent {
 							if (eventFromTime.isPresent()) {
 								Configuration configuration = eventFromTime.get();
 								configuration.setValue(toTime);
-								 configurationRepository.save(configuration);
+								configurationRepository.save(configuration);
 							}
 						}
 					}
@@ -104,8 +112,9 @@ public class ProcessEvent {
 
 		if (lock.tryLock()) {
 			try {
+
 				int reCallCount = 0;
-				int processCommand = 0;
+				Integer processCommand = 0;
 				int processSleepTime = 0;
 				List<Configuration> allConfiguration = configurationRepository.findAll();
 				for (Configuration configuration : allConfiguration) {
@@ -119,9 +128,14 @@ public class ProcessEvent {
 						processSleepTime = Integer.valueOf(configuration.getValue());
 					}
 				}
-//				commandSendDetalisService.sendCommand(reCallCount,processSleepTime);
-				fileUploadDetailsService.updateFlleDetalis();
-				
+
+				if (firstCall || (new Date(currentTime.getTime() + processCommand * 60000).before(new Date()))) {
+					currentTime = new Date();
+					firstCall = false;
+					commandSendDetalisService.sendCommand(reCallCount, processSleepTime);
+					fileUploadDetailsService.updateFlleDetalis();
+				}
+
 //				scheduleNextRun(processCommand * 1000L);
 			} finally {
 				lock.unlock();

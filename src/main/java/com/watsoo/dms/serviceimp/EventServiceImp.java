@@ -1,10 +1,8 @@
 package com.watsoo.dms.serviceimp;
 
-import java.text.DateFormatSymbols;
+import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -12,7 +10,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
@@ -27,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
@@ -41,7 +39,9 @@ import com.watsoo.dms.dto.PaginatedRequestDto;
 import com.watsoo.dms.dto.PaginatedResponseDto;
 import com.watsoo.dms.dto.Response;
 import com.watsoo.dms.entity.Configuration;
+import com.watsoo.dms.entity.CredentialMaster;
 import com.watsoo.dms.entity.Event;
+import com.watsoo.dms.entity.User;
 import com.watsoo.dms.entity.Vehicle;
 import com.watsoo.dms.enums.EventType;
 import com.watsoo.dms.repository.ConfigurationRepository;
@@ -50,9 +50,9 @@ import com.watsoo.dms.repository.EventRepository;
 import com.watsoo.dms.repository.RemarkRepository;
 import com.watsoo.dms.repository.VehicleRepository;
 import com.watsoo.dms.restclient.RestClientService;
+import com.watsoo.dms.security.JwtUserDetailsService;
 import com.watsoo.dms.service.CommandSendDetalisService;
 import com.watsoo.dms.service.EventService;
-import com.watsoo.dms.util.Month;
 import com.watsoo.dms.util.TimeUtility;
 
 @Service
@@ -79,68 +79,15 @@ public class EventServiceImp implements EventService {
 	@Autowired
 	private CommandSendDetalisService commandSendDetalisService;
 
+	@Autowired
+	private JwtUserDetailsService userDetailsService;
+
 	@Value("${file.get.url}")
 	String fileUrl;
 
-//	@Override
-//	public Response<?> getAllEvent(int pageSize, int pageNo, String vehicleNo, String driverName, String eventType,
-//			String searchKey) {
-//
-//		try {
-//			PaginatedRequestDto paginatedRequest = new PaginatedRequestDto(pageSize, pageNo, vehicleNo, driverName,
-//					eventType, searchKey);
-//			Pageable pageable = pageSize > 0 ? PageRequest.of(pageNo, pageSize) : Pageable.unpaged();
-//			Page<Event> findAllEvent = eventRepository.findAll(paginatedRequest, pageable);
-//			List<Event> events = findAllEvent.getContent();
-//
-//			Set<Long> allDeviceID = events.stream().map(event -> event.getDeviceId()).collect(Collectors.toSet());
-//
-//			Map<Integer, Vehicle> vehiclesByDeviceId = new HashMap<>();
-//			Map<Long, Driver> allDriver = new HashMap<>();
-//			List<Long> vechileIdList = new ArrayList<>();
-//
-//			if (allDeviceID != null && !allDeviceID.isEmpty()) {
-//				List<Vehicle> vehicles = vehicleRepository.findVehiclesByDeviceIds(allDeviceID);
-//
-//				vehicles = checkImeiNumberIsPresent(vehicles, allDeviceID);
-//
-//				vehiclesByDeviceId = vehicles.stream()
-//						.collect(Collectors.toMap(Vehicle::getDeviceId, Function.identity()));
-//
-//				vechileIdList = vehicles.stream().map(Vehicle::getId).collect(Collectors.toList());
-//
-//				List<Driver> allDrivers = driverRepository.findAllById(vechileIdList);
-//				allDriver = allDrivers.stream().collect(Collectors.toMap(Driver::getVehicle_id, Function.identity()));
-//			}
-//
-//			List<EventDto> eventsdto = new ArrayList<>();
-//
-//			// Iterate over the events list
-//			for (Event event : events) {
-//				EventDto fromEventToEventDto = EventDto.fromEntity(event);
-//				if (event.getEvidencePhotos() != null) {
-//					fromEventToEventDto.setEvidencePhotos(convertStringToArray(event.getEvidencePhotos()));
-//				}
-//				Long deviceId = event.getDeviceId();
-//				Vehicle vehicle = vehiclesByDeviceId.get(deviceId.intValue()); // Convert Long to Integer
-//				fromEventToEventDto.setVehicleDto(VehicleDto.fromEntity(vehicle));
-//				Driver driver = allDriver.get(vehicle.getId());
-//				fromEventToEventDto.setDriverDto(DriverDto.convertEntityToDto(driver));
-//
-//				eventsdto.add(fromEventToEventDto);
-//			}
-//
-//			PaginatedResponseDto<Object> paginatedResponseDto = new PaginatedResponseDto<>(eventRepository.count(),
-//					events.size(), findAllEvent.getTotalPages(), pageNo, eventsdto);
-//			return new Response<>("Event List", paginatedResponseDto, HttpStatus.OK.value());
-//
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			return new Response<>("Error occurred while processing Event list", null, HttpStatus.BAD_REQUEST.value());
-//
-//		}
-//
-//	}
+	Map<Long, String> deviceInformationWithUser = new HashMap<>();
+	Map<Long, Date> userWithTime = new HashMap<>();
+	String timeConfiguration = "10";
 
 	@Override
 	public Response<?> getAllEvent(int pageSize, int pageNo, String vehicleNo, String driverName, String eventType,
@@ -155,8 +102,9 @@ public class EventServiceImp implements EventService {
 
 			Set<Long> allDeviceID = events.stream().map(event -> event.getDeviceId()).collect(Collectors.toSet());
 //
-			String deviceInformation = restClientService.getDeviceInformation(allDeviceID);
-
+			String deviceInformation = getDeviceInformtaion(allDeviceID);
+			Integer pendingRemark = 0;
+			Integer actionTakenRemark = 0;
 			int totalActiveVehicle = 0;
 			int totalInActiveVehicle = 0;
 
@@ -196,18 +144,61 @@ public class EventServiceImp implements EventService {
 //				}
 
 				if (!event.getEventType().equals(EventType.POWER_CUT)) {
+
+					if (event.getRemark().equals("PENDING")) {
+						pendingRemark++;
+					} else {
+						actionTakenRemark++;
+					}
 					eventsdto.add(fromEventToEventDto);
 				}
 			}
 
+			eventsAllDetalisForDashBoard.setPendingRemark(pendingRemark);
+			eventsAllDetalisForDashBoard.setActionTakenRemark(actionTakenRemark);
 			PaginatedResponseDto<Object> paginatedResponseDto = new PaginatedResponseDto<>(eventRepository.count(),
 					events.size(), findAllEvent.getTotalPages(), pageNo, eventsdto, eventsAllDetalisForDashBoard);
 			return new Response<>("Event List", paginatedResponseDto, HttpStatus.OK.value());
 
 		} catch (Exception e) {
-			e.printStackTrace();
 			return new Response<>("Error occurred while processing Event list", null, HttpStatus.BAD_REQUEST.value());
 
+		}
+
+	}
+
+	public String getDeviceInformtaion(Set<Long> allDeviceID) {
+
+		boolean isFirstCall = true;
+
+		Date currentTime = new Date();
+
+		User user = new User();
+		Optional<CredentialMaster> userDetails = userDetailsService.getUserDetails();
+		if (userDetails.isPresent()) {
+			user = userDetails.get().getUser();
+		}
+		if (deviceInformationWithUser != null && userWithTime != null
+				&& deviceInformationWithUser.get(user.getId()) != null) {
+			isFirstCall = false;
+			currentTime = userWithTime.get(user.getId());
+		}
+
+		if (isFirstCall
+				|| (!isFirstCall && (new Date(currentTime.getTime() + Integer.parseInt(timeConfiguration) * 60000)
+						.before(new Date())))) {
+			Optional<Configuration> findByKey = configurationRepository.findByKey("DEVICE_INFORMATION_API_CALL_TIME");
+			if (findByKey.isPresent() && findByKey.get() != null) {
+				timeConfiguration = findByKey.get().getValue();
+			}
+
+			String deviceInformation = restClientService.getDeviceInformation(allDeviceID);
+			deviceInformationWithUser.put(user.getId(), deviceInformation);
+			userWithTime.put(user.getId(), new Date());
+			return deviceInformation;
+
+		} else {
+			return deviceInformationWithUser.get(user.getId());
 		}
 
 	}
@@ -661,35 +652,59 @@ public class EventServiceImp implements EventService {
 		String addedFromTime = "00:00:00";
 		String addedToTime = "23:59:59";
 
-		String fromPriviosDateTime = "";
-		String toPriviosDateTime = "";
+		String fromPriviosStartDateTime = "";
+		String toPriviosEndDateTime = "";
 
-		String fromCurrentDateTime = "";
-		String toThisCurrentDateTime = "";
+		String fromCurrentStartDateTime = "";
+		String toCurrentEndDateTime = "";
 
 		if (value == null) {
 			return new Response<>("Value Must Be required", null, 400);
 		}
 
 		try {
+
 			if (value.equals(Constant.LAST_TWO_MONTHS)) {
 				Calendar calendar = Calendar.getInstance();
+
+				// Previous Month Start Date
 				calendar.add(Calendar.MONTH, -1);
 				calendar.set(Calendar.DAY_OF_MONTH, 1);
 				Date previousMonthStartDate = calendar.getTime();
+
+				// Previous Month End Date
+				calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+				Date previousMonthEndDate = calendar.getTime();
+
+				// Current Month Start Date
 				calendar = Calendar.getInstance();
+				calendar.set(Calendar.DAY_OF_MONTH, 1);
+				Date currentMonthStartDate = calendar.getTime();
+
+				// Current Month End Date
 				calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
 				Date currentMonthEndDate = calendar.getTime();
+
+				// Formatting dates
 				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 				String formattedPreviousMonthStartDate = dateFormat.format(previousMonthStartDate);
+				String formattedPreviousMonthEndDate = dateFormat.format(previousMonthEndDate);
+				String formattedCurrentMonthStartDate = dateFormat.format(currentMonthStartDate);
 				String formattedCurrentMonthEndDate = dateFormat.format(currentMonthEndDate);
+
+				fromPriviosStartDateTime = formattedPreviousMonthStartDate + " " + addedFromTime;
+				toPriviosEndDateTime = formattedPreviousMonthEndDate + " " + addedToTime;
+
+				fromCurrentStartDateTime = formattedCurrentMonthStartDate + " " + addedFromTime;
+				toCurrentEndDateTime = formattedCurrentMonthEndDate + " " + addedToTime;
+
 				fromDate = formattedPreviousMonthStartDate + " " + addedFromTime;
 				toDate = formattedCurrentMonthEndDate + " " + addedToTime;
+
 			} else if (value.equals(Constant.LAST_TWO_WEEK)) {
 
 				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
-				// Calculate date range for last two weeks
 				Calendar calendar = Calendar.getInstance();
 				calendar.add(Calendar.WEEK_OF_YEAR, -1); // Move to last week
 				calendar.set(Calendar.DAY_OF_WEEK, calendar.getFirstDayOfWeek()); // Move to first day of last week
@@ -705,13 +720,13 @@ public class EventServiceImp implements EventService {
 				String formattedPreviousWeekEndDate = dateFormat.format(previousWeekEndDate);
 
 				String formattedCurrentWeekStartDate = dateFormat.format(currentWeekStartDate);
-				String formattedCurrentWeekEndDate = dateFormat.format(previousWeekEndDate);
+				String formattedCurrentWeekEndDate = dateFormat.format(currentWeekEndDate);
 
-				fromPriviosDateTime = formattedPreviousWeekStartDate + " " + addedFromTime;
-				toPriviosDateTime = formattedPreviousWeekEndDate + " " + addedToTime;
+				fromPriviosStartDateTime = formattedPreviousWeekStartDate + " " + addedFromTime;
+				toPriviosEndDateTime = formattedPreviousWeekEndDate + " " + addedToTime;
 
-				fromCurrentDateTime = formattedCurrentWeekStartDate + " " + addedFromTime;
-				toThisCurrentDateTime = formattedCurrentWeekEndDate + " " + addedToTime;
+				fromCurrentStartDateTime = formattedCurrentWeekStartDate + " " + addedFromTime;
+				toCurrentEndDateTime = formattedCurrentWeekEndDate + " " + addedToTime;
 
 				fromDate = formattedPreviousWeekStartDate + " " + addedFromTime;
 				toDate = formattedCurrentWeekEndDate + " " + addedToTime;
@@ -735,17 +750,32 @@ public class EventServiceImp implements EventService {
 				calendar.set(Calendar.SECOND, 0);
 				Date yesterdayStartDate = calendar.getTime();
 				String formattedYesterdayStartDate = dateFormat.format(yesterdayStartDate);
+
+				fromPriviosStartDateTime = formattedYesterdayStartDate + " " + addedFromTime;
+				toPriviosEndDateTime = formattedYesterdayEndDate + " " + addedToTime;
+				fromCurrentStartDateTime = formattedTodayStartDate + " " + addedFromTime;
+				toCurrentEndDateTime = formattedTodayEndDate + " " + addedToTime;
+				fromDate = formattedYesterdayStartDate + " " + addedFromTime;
+				toDate = formattedTodayEndDate + " " + addedToTime;
+
+			} else {
+
+				return new Response<>("Provide The Valid Data in  Value Key ", null, 400);
 			}
 
 			List<Event> findEventsBetweenDates = eventRepository.findEventsBetweenDates(fromDate, toDate);
+
+			Map<String, Integer> twoDateBetweenEvent = getDataBetweenTwoDates(findEventsBetweenDates,
+					fromPriviosStartDateTime, toPriviosEndDateTime, fromCurrentStartDateTime, toCurrentEndDateTime);
+
 			Map<String, List<Event>> categorizeEventsByDlNo = categorizeEventsByDlNo(findEventsBetweenDates);
-			Map<String, Integer> monthWiseTotalCountEvent = getMonthWiseTotalCountEvent(findEventsBetweenDates);
 			Map<String, Map<String, Double>> driverEvenntCountMonth = new HashMap<>();
 
 			for (String dlNumber : categorizeEventsByDlNo.keySet()) {
 
 				List<Event> list = categorizeEventsByDlNo.get(dlNumber);
-				Map<String, Double> countEventsByMonth = countEventsByMonth(list, monthWiseTotalCountEvent);
+				Map<String, Double> countEventsByMonth = countEventsByRange(list, twoDateBetweenEvent,
+						fromPriviosStartDateTime, toPriviosEndDateTime, fromCurrentStartDateTime, toCurrentEndDateTime);
 				driverEvenntCountMonth.put(list.get(0).getDriverName() + " (" + dlNumber + ")", countEventsByMonth);
 
 			}
@@ -756,82 +786,102 @@ public class EventServiceImp implements EventService {
 		}
 	}
 
-	public static Map<String, Double> countEventsByMonth(List<Event> eventList,
-			Map<String, Integer> monthWiseTotalCountEvent) {
-		Map<String, Integer> eventCountByMonth = new HashMap<>();
-		Calendar calendar = Calendar.getInstance();
+	private Map<String, Double> countEventsByRange(List<Event> eventList, Map<String, Integer> twoDateBetweenEvent,
+			String fromPriviosStartDateTime, String toPriviosEndDateTime, String fromCurrentStartDateTime,
+			String toCurrentEndDateTime) {
 
-		String currentMonthName = getCurrentMonthName();
-		String previousMonthName = getPreviousMonthName();
+		Map<String, Integer> eventCountByMonth = new HashMap<>();
 
 		for (Event event : eventList) {
-			calendar.setTime(event.getEventServerCreateTime());
-			int month = calendar.get(Calendar.MONTH);
-			int year = calendar.get(Calendar.YEAR);
-			String monthName = Month.getMonthName(month);
-			String key = "";
-			if (currentMonthName.equalsIgnoreCase(monthName)) {
-				key = "THIS_MONTH";
-			}
-			if (previousMonthName.equalsIgnoreCase(monthName)) {
-				key = "PRIVIOUS_MONTH";
-			}
+
+			String key = getRangeCount(event.getEventServerCreateTime(), fromPriviosStartDateTime, toPriviosEndDateTime,
+					fromCurrentStartDateTime, toCurrentEndDateTime);
+
 			eventCountByMonth.put(key, eventCountByMonth.getOrDefault(key, 0) + 1);
 		}
 
 		Map<String, Double> eventCountByMonthWise = new HashMap<>();
 
-		for (String monthName : eventCountByMonth.keySet()) {
+		for (String key : eventCountByMonth.keySet()) {
 
-			Integer baseMonthEvent = monthWiseTotalCountEvent.get(monthName);
-			Integer actualEvent = eventCountByMonth.get(monthName);
+			Integer baseMonthEvent = twoDateBetweenEvent.get(key);
+			Integer actualEvent = eventCountByMonth.get(key);
 
-			eventCountByMonthWise.put(monthName, calculatePerformance(actualEvent, baseMonthEvent));
+			eventCountByMonthWise.put(key, calculatePerformance(actualEvent, baseMonthEvent));
 
 		}
 
 		return eventCountByMonthWise;
+
 	}
 
-	public Map<String, Integer> getMonthWiseTotalCountEvent(List<Event> allEvents) {
-		Map<String, Integer> monthCount = new HashMap<>();
-		String currentMonthName = getCurrentMonthName();
-		String previousMonthName = getPreviousMonthName();
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM", Locale.ENGLISH);
+	public Map<String, Integer> getDataBetweenTwoDates(List<Event> findEventsBetweenDates,
+			String fromPreviousStartDateTime, String toPreviousEndDateTime, String fromCurrentStartDateTime,
+			String toCurrentEndDateTime) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-		// Iterate through each event in the list
-		for (Event event : allEvents) {
-			LocalDateTime eventTime = event.getEventServerCreateTime().toInstant().atZone(ZoneId.systemDefault())
-					.toLocalDateTime();
+		try {
+			Date fromPreviousStartDate = dateFormat.parse(fromPreviousStartDateTime);
+			Date toPreviousEndDate = dateFormat.parse(toPreviousEndDateTime);
+			Date fromCurrentStartDate = dateFormat.parse(fromCurrentStartDateTime);
+			Date toCurrentEndDate = dateFormat.parse(toCurrentEndDateTime);
+			long previousRangeCount = findEventsBetweenDates.stream().filter(
+					event -> isWithinRange(event.getEventServerCreateTime(), fromPreviousStartDate, toPreviousEndDate))
+					.count();
 
-			String month = eventTime.format(formatter); // Format as "MonthName Year"
+			long currentRangeCount = findEventsBetweenDates.stream().filter(
+					event -> isWithinRange(event.getEventServerCreateTime(), fromCurrentStartDate, toCurrentEndDate))
+					.count();
+			Map<String, Integer> result = new HashMap<>();
+			result.put("previousRangeCount", (int) previousRangeCount);
+			result.put("currentRangeCount", (int) currentRangeCount);
 
-			if (currentMonthName.equalsIgnoreCase(month)) {
-				month = "THIS_MONTH";
-			}
-			if (previousMonthName.equalsIgnoreCase(month)) {
-				month = "PRIVIOUS_MONTH";
-			}
+			return result;
 
-			monthCount.put(month, monthCount.getOrDefault(month, 0) + 1);
+		} catch (ParseException e) {
+			e.printStackTrace();
+			return null;
 		}
-		return monthCount;
 	}
 
-	public static double calculatePerformance(int actualEvents, int baseMonthEvents) {
-		return ((double) actualEvents / baseMonthEvents) * 100;
+	private boolean isWithinRange(Date eventDate, Date startDate, Date endDate) {
+		return eventDate != null && !eventDate.before(startDate) && !eventDate.after(endDate);
 	}
 
-	public static String getCurrentMonthName() {
-		Calendar calendar = Calendar.getInstance();
-		int month = calendar.get(Calendar.MONTH);
-		return new DateFormatSymbols().getMonths()[month];
+	public String getRangeCount(Date serverCreateTime, String fromPreviousStartDateTime, String toPreviousEndDateTime,
+			String fromCurrentStartDateTime, String toCurrentEndDateTime) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		try {
+			Date fromPreviousStartDate = dateFormat.parse(fromPreviousStartDateTime);
+			Date toPreviousEndDate = dateFormat.parse(toPreviousEndDateTime);
+			Date fromCurrentStartDate = dateFormat.parse(fromCurrentStartDateTime);
+			Date toCurrentEndDate = dateFormat.parse(toCurrentEndDateTime);
+			if (isWithinRange(serverCreateTime, fromPreviousStartDate, toPreviousEndDate)) {
+				return "previousRangeCount";
+			}
+
+			if (isWithinRange(serverCreateTime, fromCurrentStartDate, toCurrentEndDate)) {
+				return "currentRangeCount";
+			}
+
+			return "outOfRange";
+
+		} catch (ParseException e) {
+			e.printStackTrace();
+			return "error";
+		}
 	}
 
-	public static String getPreviousMonthName() {
-		Calendar calendar = Calendar.getInstance();
-		int previousMonth = (calendar.get(Calendar.MONTH) - 1 + 12) % 12;
-		return new DateFormatSymbols().getMonths()[previousMonth];
+	public static Double calculatePerformance(int actualEvents, int baseMonthEvents) {
+		if (baseMonthEvents == 0) {
+			throw new IllegalArgumentException("baseMonthEvents cannot be zero");
+		}
+
+		double performance = ((double) actualEvents / baseMonthEvents) * 100;
+		DecimalFormat df = new DecimalFormat("#0.00");
+
+		return Double.valueOf(df.format(performance));
 	}
 
 }

@@ -1,5 +1,7 @@
 package com.watsoo.dms.dto;
 
+import java.util.Date;
+
 import com.watsoo.dms.entity.Command;
 
 public class CommandDto {
@@ -10,6 +12,11 @@ public class CommandDto {
 	private Long vechile_id;
 	private String imeiNumber;
 	private String endCommand;
+	private String commandDetalis;
+	private String command;
+
+	private Date createdOn;
+	private Date updatedOn;
 
 	// Getters and Setters
 
@@ -69,12 +76,49 @@ public class CommandDto {
 		this.endCommand = endCommand;
 	}
 
+	public String getCommandDetalis() {
+		return commandDetalis;
+	}
+
+	public void setCommandDetalis(String commandDetalis) {
+		this.commandDetalis = commandDetalis;
+	}
+
+	public String getCommand() {
+		return command;
+	}
+
+	public void setCommand(String command) {
+		this.command = command;
+	}
+
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public Date getUpdatedOn() {
+		return updatedOn;
+	}
+
+	public void setUpdatedOn(Date updatedOn) {
+		this.updatedOn = updatedOn;
+	}
+
 	public static CommandDto entityToDto(Command command) {
 		CommandDto dto = new CommandDto();
 		dto.setId(command.getId());
 		dto.setDeviceModelNumber(command.getDdevicModelNumber());
-		dto.setBaseCommand(command.getCommand());
 		dto.setDescription(command.getDescription());
+		dto.setCommandDetalis(command.getCommandDetail());
+		dto.setBaseCommand(command.getBaseCommand());
+		dto.setCommand(command.getCommand());
+		dto.setCreatedOn(command.getCreatedOn());
+		dto.setUpdatedOn(command.getUpdatedOn());
+		dto.setVechile_id(command.getVechileId());
 		return dto;
 	}
 
@@ -82,10 +126,12 @@ public class CommandDto {
 		Command command = new Command();
 		command.setId(dto.getId());
 		command.setDdevicModelNumber(dto.getDeviceModelNumber());
-		command.setCommand(dto.getBaseCommand());
 		command.setDescription(dto.getDescription());
 		command.setImeiNumber(dto.getImeiNumber());
 		command.setVechileId(dto.getVechile_id());
+		command.setCommandDetail(dto.getCommandDetalis());
+		command.setCommand(dto.getCommand());
+		command.setBaseCommand(dto.getBaseCommand());
 		command.setEndCommand(dto.getEndCommand());
 		return command;
 	}

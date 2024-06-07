@@ -14,6 +14,7 @@ public class VehicleDto {
 	private Integer deviceId;
 	private Date createdOn;
 	private String imeiNo;
+	private String model;
 
 	private Date updatedOn;
 
@@ -108,6 +109,14 @@ public class VehicleDto {
 		this.imeiNo = imeiNo;
 	}
 
+	public String getModel() {
+		return model;
+	}
+
+	public void setModel(String model) {
+		this.model = model;
+	}
+
 	public static VehicleDto fromEntity(Vehicle vehicle) {
 		VehicleDto dto = new VehicleDto();
 		dto.setId(vehicle.getId());
@@ -121,6 +130,7 @@ public class VehicleDto {
 		dto.setUpdatedOn(vehicle.getUpdatedOn());
 		dto.setIsActive(vehicle.getIsActive());
 		dto.setImeiNo(vehicle.getImeiNo());
+		dto.setModel(vehicle.getModel());
 		return dto;
 	}
 }

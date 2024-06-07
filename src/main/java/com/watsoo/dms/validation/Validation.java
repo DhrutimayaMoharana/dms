@@ -54,13 +54,12 @@ public class Validation {
 	}
 
 	public static Response<?> validateCommandDto(CommandDto command) {
-		if (command.getBaseCommand() == null || command.getBaseCommand().isEmpty()) {
+
+		if (command.getCommand() == null || command.getCommand().isEmpty()) {
 			return new Response<>("Command is required", null, 400);
-		}
+		} 
+
 		
-		if (command.getBaseCommand() == null || command.getBaseCommand().isEmpty()) {
-			return new Response<>("End Command is required", null, 400);
-		}
 
 		if (command.getVechile_id() == null) {
 			return new Response<>("Vechile id is required", null, 400);
@@ -74,10 +73,8 @@ public class Validation {
 			return new Response<>("Description is required", null, 400);
 
 		}
-		if (command.getDeviceModelNumber() == null) {
-			return new Response<>("Device Model Number is required", null, 400);
-		}
 		return null;
 	}
 
+	
 }
