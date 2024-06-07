@@ -119,6 +119,7 @@ public class CommandDto {
 		dto.setCreatedOn(command.getCreatedOn());
 		dto.setUpdatedOn(command.getUpdatedOn());
 		dto.setVechile_id(command.getVechileId());
+		dto.setEndCommand(command.getEndCommand());
 		return dto;
 	}
 
