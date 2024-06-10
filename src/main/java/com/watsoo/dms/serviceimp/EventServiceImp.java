@@ -24,7 +24,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
@@ -33,6 +32,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.watsoo.dms.constant.Constant;
 import com.watsoo.dms.dto.DeviceInformationDto;
+import com.watsoo.dms.dto.DriverPerformanceDto;
 import com.watsoo.dms.dto.EventDto;
 import com.watsoo.dms.dto.EventTypeCountDto;
 import com.watsoo.dms.dto.PaginatedRequestDto;
@@ -771,15 +771,36 @@ public class EventServiceImp implements EventService {
 			Map<String, List<Event>> categorizeEventsByDlNo = categorizeEventsByDlNo(findEventsBetweenDates);
 			Map<String, Map<String, Double>> driverEvenntCountMonth = new HashMap<>();
 
+			List<DriverPerformanceDto> driverPerformanceDto = new ArrayList<>();
+
 			for (String dlNumber : categorizeEventsByDlNo.keySet()) {
+
+				DriverPerformanceDto obj = new DriverPerformanceDto();
 
 				List<Event> list = categorizeEventsByDlNo.get(dlNumber);
 				Map<String, Double> countEventsByMonth = countEventsByRange(list, twoDateBetweenEvent,
 						fromPriviosStartDateTime, toPriviosEndDateTime, fromCurrentStartDateTime, toCurrentEndDateTime);
-				driverEvenntCountMonth.put(list.get(0).getDriverName() + " (" + dlNumber + ")", countEventsByMonth);
+
+				obj.setDriverName(list.get(0).getDriverName() + " (" + dlNumber + ")");
+				for (Map.Entry<String, Double> rangeCountByDriver : countEventsByMonth.entrySet()) {
+					String key = rangeCountByDriver.getKey();
+
+					if (key.equals("previousRangeCount")) {
+						obj.setPreviousRangeCount(rangeCountByDriver.getValue());
+					}
+					if (key.equals("currentRangeCount")) {
+						obj.setCurrentRangeCount(rangeCountByDriver.getValue());
+					}
+
+				}
+
+				driverPerformanceDto.add(obj);
+				
+//				driverEvenntCountMonth.put(list.get(0).getDriverName() + " (" + dlNumber + ")", countEventsByMonth);
 
 			}
-			return new Response<>("Success", driverEvenntCountMonth, 200);
+
+			return new Response<>("Success", driverPerformanceDto, 200);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new Response<>("Some Thing Went Wrong", null, 400);

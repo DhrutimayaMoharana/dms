@@ -97,6 +97,13 @@ public class CommandServiceImpl implements CommandService {
 			String beforeHash = hashParts[0].trim();
 			String afterHash = "#";
 
+			if(beforeHash.contains("<")) {
+				
+				String[] split = beforeHash.split("<", 2);
+				beforeHash=split[0].trim();
+				System.out.println(split);
+			}
+			
 			if (beforeHash.contains(",")) {
 				String[] commaParts = beforeHash.split(",");
 				return new String[] { commaParts[0].trim(), afterHash };
