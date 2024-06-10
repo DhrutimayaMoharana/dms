@@ -20,6 +20,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 	@Query(value = "SELECT * FROM vehicle v WHERE v.device_id IN :deviceIds", nativeQuery = true)
 	List<Vehicle> findVehiclesByDeviceIds(@Param("deviceIds") Set<Long> deviceIds);
 
+
 	public static Specification<Vehicle> search(PaginatedRequestDto paginatedRequest) {
 		return (root, cq, cb) -> {
 			Predicate predicate = cb.conjunction();

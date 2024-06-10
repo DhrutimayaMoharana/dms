@@ -26,13 +26,14 @@ public class EventDto {
 	private String chassisNumber;
 	private String imeiNo;
 	private String dlNumber;
-	
+
+	private Integer remarkId;
+
 	private String registrationCertificate;
 
 	private String remark;
 
 	private Date updateOn;
-
 
 	public Long getId() {
 		return id;
@@ -182,6 +183,7 @@ public class EventDto {
 	public void setImeiNo(String imeiNo) {
 		this.imeiNo = imeiNo;
 	}
+
 	public String getRemark() {
 		return remark;
 	}
@@ -205,8 +207,14 @@ public class EventDto {
 	public void setDlNumber(String dlNumber) {
 		this.dlNumber = dlNumber;
 	}
-	
-	
+
+	public Integer getRemarkId() {
+		return remarkId;
+	}
+
+	public void setRemarkId(Integer remarkId) {
+		this.remarkId = remarkId;
+	}
 
 	public String getRegistrationCertificate() {
 		return registrationCertificate;
@@ -239,6 +247,7 @@ public class EventDto {
 		dto.setRemark(event.getRemark());
 		dto.setDlNumber(event.getDlNo());
 		dto.setRegistrationCertificate("ABCSDAD");
+		dto.setRemarkId(event.getRemarkId());
 		return dto;
 
 	}

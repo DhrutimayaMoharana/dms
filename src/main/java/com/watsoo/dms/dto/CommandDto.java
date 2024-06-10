@@ -14,9 +14,9 @@ public class CommandDto {
 	private String endCommand;
 	private String commandDetalis;
 	private String command;
+	private String vechileNumber;
 
 	private Date createdOn;
-	private Date updatedOn;
 
 	// Getters and Setters
 
@@ -100,24 +100,23 @@ public class CommandDto {
 		this.createdOn = createdOn;
 	}
 
-	public Date getUpdatedOn() {
-		return updatedOn;
+	public String getVechileNumber() {
+		return vechileNumber;
 	}
 
-	public void setUpdatedOn(Date updatedOn) {
-		this.updatedOn = updatedOn;
+	public void setVechileNumber(String vechileNumber) {
+		this.vechileNumber = vechileNumber;
 	}
 
 	public static CommandDto entityToDto(Command command) {
 		CommandDto dto = new CommandDto();
 		dto.setId(command.getId());
-		dto.setDeviceModelNumber(command.getDdevicModelNumber());
+		dto.setDeviceModelNumber(command.getDevicModelNumber());
 		dto.setDescription(command.getDescription());
 		dto.setCommandDetalis(command.getCommandDetail());
 		dto.setBaseCommand(command.getBaseCommand());
 		dto.setCommand(command.getCommand());
 		dto.setCreatedOn(command.getCreatedOn());
-		dto.setUpdatedOn(command.getUpdatedOn());
 		dto.setVechile_id(command.getVechileId());
 		dto.setEndCommand(command.getEndCommand());
 		return dto;
@@ -126,7 +125,7 @@ public class CommandDto {
 	public static Command dtoToEntity(CommandDto dto) {
 		Command command = new Command();
 		command.setId(dto.getId());
-		command.setDdevicModelNumber(dto.getDeviceModelNumber());
+		command.setDevicModelNumber(dto.getDeviceModelNumber());
 		command.setDescription(dto.getDescription());
 		command.setImeiNumber(dto.getImeiNumber());
 		command.setVechileId(dto.getVechile_id());
@@ -134,6 +133,7 @@ public class CommandDto {
 		command.setCommand(dto.getCommand());
 		command.setBaseCommand(dto.getBaseCommand());
 		command.setEndCommand(dto.getEndCommand());
+		command.setVehicleNumber(dto.getVechileNumber());
 		return command;
 	}
 }

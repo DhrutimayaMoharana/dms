@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,15 +28,19 @@ import com.watsoo.dms.dto.DeviceInformationDto;
 import com.watsoo.dms.dto.PaginatedRequestDto;
 import com.watsoo.dms.dto.PaginatedResponseDto;
 import com.watsoo.dms.dto.Response;
+import com.watsoo.dms.entity.Command;
 import com.watsoo.dms.entity.CommandSendDetails;
 import com.watsoo.dms.entity.Event;
+import com.watsoo.dms.entity.Vehicle;
 import com.watsoo.dms.repository.CommandRepository;
 import com.watsoo.dms.repository.CommandSendDetalisRepository;
+import com.watsoo.dms.repository.VehicleRepository;
 import com.watsoo.dms.restclient.RestClientService;
 import com.watsoo.dms.service.CommandSendDetalisService;
 import com.watsoo.dms.service.CommandSendTrailService;
 import com.watsoo.dms.service.FileUploadDetailsService;
 import com.watsoo.dms.util.Utility;
+import com.watsoo.dms.validation.Validation;
 
 @Service
 public class CommandSendDetalisServiceImp implements CommandSendDetalisService {
@@ -55,40 +60,66 @@ public class CommandSendDetalisServiceImp implements CommandSendDetalisService {
 	@Autowired
 	private CommandSendTrailService commandSendTrailService;
 
+	@Autowired
+	private VehicleRepository vehicleRepository;
+
 	@Override
 	public void saveCommandDetalis(List<Event> allEvent, Map<Long, String> deviceWithProtocolName) {
-		List<CommandSendDetails> commandSendDetailsList = new ArrayList<>();
+
+		try {
+			List<CommandSendDetails> commandSendDetailsList = new ArrayList<>();
 
 //		commandRepository.findBy(null, null);
 
-		for (Event event : allEvent) {
+			Set<String> vechileNumbers = allEvent.stream().map(Event::getVehicleNo).collect(Collectors.toSet());
 
-			if (event.getEvidencePhotos() != null) {
-				CommandSendDetails obj = new CommandSendDetails();
+			List<Command> findCommandsByVehicleIds = commandRepository.findCommandsByVehicleNumbers(vechileNumbers,
+					"UPLOADFILE");
 
-				obj.setBaseCommand("UPLOADFILE");
-				obj.setCommand("UPLOADFILE," + event.getEvidencePhotos() + "#");
-				obj.setEvedenceFiles(event.getEvidencePhotos());
-				obj.setDeviceId(event.getDeviceId());
-				obj.setEventId(event.getId());
-				obj.setEventType(event.getEventType().name());
-				obj.setPositionId(event.getPositionId());
-				obj.setCreateOn(LocalDateTime.now());
-				obj.setImeiNumber(event.getImeiNo());
-				obj.setUpdatedOn(LocalDateTime.now());
-				
+			Map<String, Command> commandMapByVEchileNumber = findCommandsByVehicleIds.stream()
+					.collect(Collectors.toMap(Command::getVehicleNumber, Function.identity()));
 
-				List<String> convertStringToArray = Utility.convertStringToArray(event.getEvidencePhotos());
-				obj.setNoOfFileReq(convertStringToArray.size());
+			for (Event event : allEvent) {
 
-				commandSendDetailsList.add(obj);
+				if (event.getEvidencePhotos() != null) {
+					CommandSendDetails obj = new CommandSendDetails();
+					Command command = new Command();
+					if (commandMapByVEchileNumber != null) {
+						command = commandMapByVEchileNumber.get(event.getVehicleNo());
+					}
+
+					if (command != null) {
+						obj.setBaseCommand(command.getBaseCommand());
+						obj.setCommand(command.getBaseCommand() + event.getEvidencePhotos() + command.getEndCommand());
+					} else {
+						obj.setBaseCommand("UPLOADFILE");
+						obj.setCommand("UPLOADFILE," + event.getEvidencePhotos() + "#");
+					}
+
+					obj.setEvedenceFiles(event.getEvidencePhotos());
+					obj.setDeviceId(event.getDeviceId());
+					obj.setEventId(event.getId());
+					obj.setEventType(event.getEventType().name());
+					obj.setPositionId(event.getPositionId());
+					obj.setCreateOn(LocalDateTime.now());
+					obj.setImeiNumber(event.getImeiNo());
+					obj.setUpdatedOn(LocalDateTime.now());
+
+					List<String> convertStringToArray = Utility.convertStringToArray(event.getEvidencePhotos());
+					obj.setNoOfFileReq(convertStringToArray.size());
+
+					commandSendDetailsList.add(obj);
+
+				}
 
 			}
+			List<CommandSendDetails> saveAllCommandDetalis = commandSendDetalisRepository
+					.saveAll(commandSendDetailsList);
+			if (saveAllCommandDetalis != null && saveAllCommandDetalis.size() > 0) {
+				fileUploadDetailsService.saveFileDetalis(saveAllCommandDetalis);
 
-		}
-		List<CommandSendDetails> saveAllCommandDetalis = commandSendDetalisRepository.saveAll(commandSendDetailsList);
-		if (saveAllCommandDetalis != null && saveAllCommandDetalis.size() > 0) {
-			fileUploadDetailsService.saveFileDetalis(saveAllCommandDetalis);
+			}
+		} catch (Exception e) {
 
 		}
 
@@ -122,70 +153,71 @@ public class CommandSendDetalisServiceImp implements CommandSendDetalisService {
 	@Override
 	public Response<?> sendCommandManually(CommanddetalisSendDto commanddetalisSendDto) {
 
-		if (commanddetalisSendDto == null || commanddetalisSendDto.getId() == null
-				|| commanddetalisSendDto.getCommand() == null) {
-			return new Response<>("Failed: Invalid format or missing critical fields", null, 400);
+		Response<?> checkCommandDetalis = Validation.checkCommandDetalis(commanddetalisSendDto);
+
+		if (checkCommandDetalis != null) {
+			return checkCommandDetalis;
 		}
 
-		Optional<CommandSendDetails> findById = commandSendDetalisRepository.findById(commanddetalisSendDto.getId());
-		if (findById.isPresent()) {
-			CommandSendDetails commandSendDetails = findById.get();
-			commandSendDetails.setCommand(commanddetalisSendDto.getCommand());
-
+		try {
+			CommandSendDetails commandSendDetails = new CommandSendDetails();
+			commandSendDetails.setDeviceId(commanddetalisSendDto.getDeviceId());
 			restClientService.sendHttpPostRequestForCommand(commandSendDetails);
+			commandSendTrailService.saveManualCommand(commanddetalisSendDto);
+			return new Response<>("Command Send Successfully", null, 200);
+		} catch (Exception e) {
+			return new Response<>("Something Went Wrong", null, 400);
 		}
-
-		commandSendTrailService.saveManualCommand(commanddetalisSendDto);
-
-		return new Response<>("Command Send Successfully", null, 200);
 
 	}
 
 	@Override
 	public void sendCommand(int reCallCount, int processSleepTime) {
-		
+
 		try {
-		List<CommandSendDetails> allCommands = commandSendDetalisRepository.findAll();
+			List<CommandSendDetails> allCommands = commandSendDetalisRepository.findAll();
 
-		if (allCommands != null && !allCommands.isEmpty()) {
-			Set<Long> allDeviceID = allCommands.stream().map(CommandSendDetails::getDeviceId)
-					.collect(Collectors.toSet());
+			if (allCommands != null && !allCommands.isEmpty()) {
+				Set<Long> allDeviceID = allCommands.stream().map(CommandSendDetails::getDeviceId)
+						.collect(Collectors.toSet());
 
-			String deviceInformation = restClientService.getDeviceInformation(allDeviceID);
-			Map<Long, DeviceInformationDto> retrieveDeviceInfoMap = new HashMap<>();
-			if (deviceInformation != null && !deviceInformation.isEmpty()) {
-				retrieveDeviceInfoMap = retrieveDeviceInfoMap(deviceInformation);
-			}
+				String deviceInformation = restClientService.getDeviceInformation(allDeviceID);
+				Map<Long, DeviceInformationDto> retrieveDeviceInfoMap = new HashMap<>();
+				if (deviceInformation != null && !deviceInformation.isEmpty()) {
+					retrieveDeviceInfoMap = retrieveDeviceInfoMap(deviceInformation);
+				}
 
-			Map<Long, List<CommandSendDetails>> deviceIdWithMap = new HashMap<>();
-			for (CommandSendDetails commandSendDetails : allCommands) {
+				Map<Long, List<CommandSendDetails>> deviceIdWithMap = new HashMap<>();
+				for (CommandSendDetails commandSendDetails : allCommands) {
 
-				if (commandSendDetails.getReCallCount() == null || commandSendDetails.getReCallCount() < reCallCount) {
-					if (retrieveDeviceInfoMap != null
-							&& retrieveDeviceInfoMap.get(commandSendDetails.getDeviceId()) != null && "online"
-									.equals(retrieveDeviceInfoMap.get(commandSendDetails.getDeviceId()).getStatus())) {
+					if (commandSendDetails.getReCallCount() == null
+							|| commandSendDetails.getReCallCount() < reCallCount) {
+						if (retrieveDeviceInfoMap != null
+								&& retrieveDeviceInfoMap.get(commandSendDetails.getDeviceId()) != null
+								&& "online".equals(
+										retrieveDeviceInfoMap.get(commandSendDetails.getDeviceId()).getStatus())) {
 
-						deviceIdWithMap.computeIfAbsent(commandSendDetails.getDeviceId(), k -> new ArrayList<>())
-								.add(commandSendDetails);
+							deviceIdWithMap.computeIfAbsent(commandSendDetails.getDeviceId(), k -> new ArrayList<>())
+									.add(commandSendDetails);
+
+						}
+						Integer countRecall = commandSendDetails.getReCallCount() == null ? 0
+								: commandSendDetails.getReCallCount() + 1;
+						commandSendDetails.setReCallCount(countRecall);
+						commandSendDetails.setReCallOn(LocalDateTime.now());
+						commandSendDetails.setUpdatedOn(LocalDateTime.now());
 
 					}
-					Integer countRecall = commandSendDetails.getReCallCount() == null ? 0
-							: commandSendDetails.getReCallCount() + 1;
-					commandSendDetails.setReCallCount(countRecall);
-					commandSendDetails.setReCallOn(LocalDateTime.now());
-					commandSendDetails.setUpdatedOn(LocalDateTime.now());
 
 				}
 
+				if (deviceIdWithMap != null && !deviceIdWithMap.isEmpty()) {
+					commandSendDetalisRepository.saveAll(allCommands);
+					processCommand(deviceIdWithMap, processSleepTime);
+				}
 			}
+		} catch (Exception e) {
 
-			if (deviceIdWithMap != null && !deviceIdWithMap.isEmpty()) {
-				commandSendDetalisRepository.saveAll(allCommands);
-				processCommand(deviceIdWithMap, processSleepTime);
-			}
-		}
-		}catch (Exception e) {
-		
 		}
 	}
 
@@ -205,7 +237,6 @@ public class CommandSendDetalisServiceImp implements CommandSendDetalisService {
 							|| commandSendDetails.getNoOfFileUploaded() > 0) {
 						restClientService.sendHttpPostRequestForCommand(commandSendDetails);
 
-						
 					}
 
 					try {

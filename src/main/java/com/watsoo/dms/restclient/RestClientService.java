@@ -240,6 +240,47 @@ public class RestClientService {
 				return objectMapper.readValue(responseEntity.getBody(), Object.class);
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+
+	}
+
+	public Object getReportFrom(Long deviceId, String from, String to) {
+
+		try {
+
+//			String url = baseUrl + HttpApi.STOP_REPORT + "/?deviceId=";
+
+			String url = "http://192.168.200.16:8999" + HttpApi.STOP_REPORT + "/?deviceId=";
+
+			ResponseEntity<String> responseEntity = null;
+			if (deviceId != null) {
+				url += deviceId;
+			}
+			else {
+				url+=6;
+			}
+
+			url = url + "&from=" + from + "&to=" + to;
+			HttpHeaders headers = new HttpHeaders();
+			headers.setBasicAuth(username, password);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			headers.set("cache-control", "no-cache");
+
+			HttpEntity<String> entity = new HttpEntity<>(headers);
+			responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+
+			if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+
+				return null;
+			} else {
+
+				ObjectMapper objectMapper = new ObjectMapper();
+
+				return objectMapper.readValue(responseEntity.getBody(), Object.class);
+			}
+		} catch (Exception e) {
 			return null;
 		}
 

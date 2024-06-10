@@ -41,6 +41,7 @@ import com.watsoo.dms.dto.Response;
 import com.watsoo.dms.entity.Configuration;
 import com.watsoo.dms.entity.CredentialMaster;
 import com.watsoo.dms.entity.Event;
+import com.watsoo.dms.entity.Remark;
 import com.watsoo.dms.entity.User;
 import com.watsoo.dms.entity.Vehicle;
 import com.watsoo.dms.enums.EventType;
@@ -54,6 +55,7 @@ import com.watsoo.dms.security.JwtUserDetailsService;
 import com.watsoo.dms.service.CommandSendDetalisService;
 import com.watsoo.dms.service.EventService;
 import com.watsoo.dms.util.TimeUtility;
+import com.watsoo.dms.validation.Validation;
 
 @Service
 public class EventServiceImp implements EventService {
@@ -62,25 +64,19 @@ public class EventServiceImp implements EventService {
 	private EventRepository eventRepository;
 
 	@Autowired
-	private VehicleRepository vehicleRepository;
-
-	@Autowired
 	private RestClientService restClientService;
 
 	@Autowired
-	private DriverRepository driverRepository;
-
-	@Autowired
 	private ConfigurationRepository configurationRepository;
-
-	@Autowired
-	private RemarkRepository remarkRepository;
 
 	@Autowired
 	private CommandSendDetalisService commandSendDetalisService;
 
 	@Autowired
 	private JwtUserDetailsService userDetailsService;
+
+	@Autowired
+	private RemarkRepository remarkRepository;
 
 	@Value("${file.get.url}")
 	String fileUrl;
@@ -220,7 +216,6 @@ public class EventServiceImp implements EventService {
 		long noFaceCount = 0;
 		long lowHeadCount = 0;
 		long drinkingCount = 0;
-		long totalEventCount = 0;
 		int tamperedDevices = 0;
 
 		Map<String, List<Event>> categorizeEventsByDlNo = categorizeEventsByDlNo(allEvents);
@@ -234,7 +229,6 @@ public class EventServiceImp implements EventService {
 		}
 		Map<Long, Event> lastEventByDevice = getLastEventByDevice(allEvents, allDeviceID);
 
-		Map<String, EventDto> eventAndDriverPerfomance = new HashMap<>();
 		for (Long x : lastEventByDevice.keySet()) {
 			Event event = lastEventByDevice.get(x);
 
@@ -508,6 +502,8 @@ public class EventServiceImp implements EventService {
 		Map<Long, Event> eventsDataMap = new HashMap<>();
 		List<Long> positionIdList = new ArrayList<>();
 
+		Remark findByStatus = remarkRepository.findByStatus("PENDING");
+
 		for (JsonElement eventElement : eventList) {
 			JsonObject event = eventElement.getAsJsonObject();
 
@@ -535,8 +531,9 @@ public class EventServiceImp implements EventService {
 						eventObject.setDriverPhone("5343435353");
 						eventObject.setChassisNumber("4353537387383");
 						eventObject.setVehicleNo("OODD44DD");
-						eventObject.setImeiNo("23456789");
-						eventObject.setRemark("PENDING");
+						eventObject.setImeiNo("11111");
+						eventObject.setRemark(findByStatus.getStatus());
+						eventObject.setRemarkId(findByStatus.getId());
 
 						eventObject.setDlNo(new Random().ints(12, 0, 62)
 								.mapToObj(
@@ -578,11 +575,11 @@ public class EventServiceImp implements EventService {
 								event.setEvidencePhotos(evidenceFiles);
 								eventsDataMap.put(positionId, event);
 
-								if (positionData.has("protocol")) {
-									deviceWithProtocolName.put(event.getDeviceId(),
-											positionData.get("protocol").getAsString());
-
-								}
+//								if (positionData.has("protocol")) {
+//									deviceWithProtocolName.put(event.getDeviceId(),
+//											positionData.get("protocol").getAsString());
+//
+//								}
 
 							}
 
@@ -619,17 +616,24 @@ public class EventServiceImp implements EventService {
 	@Override
 	public Response<?> updateEvent(EventDto eventDto) {
 
-		if (eventDto == null || eventDto.getId() == null) {
-
-			return new Response<>("Provide Valid Event Id", null, 400);
+		Response<?> checkEventUpdateDto = Validation.checkEventUpdateDto(eventDto);
+		if (checkEventUpdateDto != null) {
+			return checkEventUpdateDto;
 
 		}
+
+		Optional<Remark> findByIdRemark = remarkRepository.findById(eventDto.getRemarkId());
+		if (!findByIdRemark.isPresent() && findByIdRemark.get() == null) {
+			return new Response<>("The remark id must be Valid ", null, 400);
+		}
+		Remark remark = findByIdRemark.get();
 
 		Optional<Event> eventFindById = eventRepository.findById(eventDto.getId());
 		if (eventFindById.isPresent() && eventFindById.get() != null) {
 			Event event = eventFindById.get();
 			if (eventDto.getRemark() != null) {
 				event.setRemark(eventDto.getRemark());
+				event.setRemarkId(remark.getId());
 				eventRepository.save(event);
 
 			}
@@ -795,7 +799,7 @@ public class EventServiceImp implements EventService {
 				}
 
 				driverPerformanceDto.add(obj);
-				
+
 //				driverEvenntCountMonth.put(list.get(0).getDriverName() + " (" + dlNumber + ")", countEventsByMonth);
 
 			}

@@ -79,7 +79,6 @@ public class CommandServiceImpl implements CommandService {
 
 		Command command = CommandDto.dtoToEntity(commandDto);
 		command.setCreatedOn(new Date());
-		command.setUpdatedOn(new Date());
 		commandRepository.save(command);
 		return new Response<>("Success", null, 200);
 

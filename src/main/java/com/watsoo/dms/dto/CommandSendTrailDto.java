@@ -8,7 +8,7 @@ public class CommandSendTrailDto {
 
 	private Long id;
 
-	private UserDto dto;
+	private UserDto userDto;
 
 	private String command;
 
@@ -18,6 +18,10 @@ public class CommandSendTrailDto {
 
 	private Date updatedOn;
 
+	private String useCommand;
+
+	private String description;
+
 	public Long getId() {
 		return id;
 	}
@@ -26,12 +30,12 @@ public class CommandSendTrailDto {
 		this.id = id;
 	}
 
-	public UserDto getDto() {
-		return dto;
+	public UserDto getUserDto() {
+		return userDto;
 	}
 
-	public void setDto(UserDto dto) {
-		this.dto = dto;
+	public void setUserDto(UserDto userDto) {
+		this.userDto = userDto;
 	}
 
 	public String getCommand() {
@@ -66,19 +70,36 @@ public class CommandSendTrailDto {
 		this.updatedOn = updatedOn;
 	}
 
+	public String getUseCommand() {
+		return useCommand;
+	}
+
+	public void setUseCommand(String useCommand) {
+		this.useCommand = useCommand;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
 	public CommandSendTrailDto() {
 
 	}
 
 	public static CommandSendTrailDto entityToDto(CommandSendTrail commandSendTrail) {
-		
-		CommandSendTrailDto obj = new CommandSendTrailDto();
 
-		obj.setCommand(commandSendTrail.getCommand());
+		CommandSendTrailDto obj = new CommandSendTrailDto();
 		obj.setId(commandSendTrail.getId());
 		obj.setUpdatedOn(commandSendTrail.getUpdatedOn());
 		obj.setCreatedOn(commandSendTrail.getCreatedOn());
 		obj.setVechileId(commandSendTrail.getVechileId());
+		obj.setUseCommand(commandSendTrail.getUseCommand());
+		obj.setDescription(commandSendTrail.getDescription());
+		obj.setCommand(commandSendTrail.getCommand());
 		return obj;
 
 	}

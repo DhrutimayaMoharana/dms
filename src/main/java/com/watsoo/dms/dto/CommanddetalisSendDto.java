@@ -16,6 +16,9 @@ public class CommanddetalisSendDto {
 	private String evidenceFiles;
 	private String baseCommand;
 	private String command;
+	
+	private String useCommand;
+	
 	private String commandResponse;
 	private String status; // assuming CommandStatus is an enum, we use String here
 	private String vehicleStatus;
@@ -26,6 +29,7 @@ public class CommanddetalisSendDto {
 	private Integer reCallCount;
 	private String endCommand;
 	private Long vechileId;
+	private String description;
 
 	private Long userId;
 
@@ -191,6 +195,22 @@ public class CommanddetalisSendDto {
 
 	public CommanddetalisSendDto() {
 		super();
+	}
+
+	public String getUseCommand() {
+		return useCommand;
+	}
+
+	public void setUseCommand(String useCommand) {
+		this.useCommand = useCommand;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 	public static CommanddetalisSendDto entityToDto(CommandSendDetails commandSendDetails) {

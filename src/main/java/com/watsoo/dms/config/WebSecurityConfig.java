@@ -44,7 +44,7 @@ public class WebSecurityConfig {
 		http.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("**/swagger-ui/index.html/**", "/swagger-ui/**", "/bus/v3/api-docs/**",
-								"/swagger-resources/**", "**/v3/api-docs/swagger-config", "/api/positions","/v3/api-docs", "/api/user/login","/api/event/get/type","/v1/uploadFile","/getFile/**")
+								"/swagger-resources/**", "**/v3/api-docs/swagger-config", "/api/positions","/api/positions/**","/v3/api-docs", "/api/user/login","/api/event/get/type","/v1/uploadFile","/getFile/**")
 						.permitAll().anyRequest().authenticated())
 				.exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

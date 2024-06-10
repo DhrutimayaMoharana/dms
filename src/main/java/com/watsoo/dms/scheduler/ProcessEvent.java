@@ -73,7 +73,7 @@ public class ProcessEvent {
 //	@Autowired
 //	private ScheduledExecutorService scheduledExecutorService;
 
-//	@Scheduled(fixedRate = 1000)
+	@Scheduled(fixedRate = 1000)
 	public void processEvent() {
 		if (lock.tryLock()) {
 			try {

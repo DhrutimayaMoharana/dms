@@ -40,7 +40,8 @@ public class CommandSendTrailServiceImp implements CommandSendTrailService {
 		commandSendTrail.setCreatedOn(new Date());
 		commandSendTrail.setUserId(commanddetalisSendDto.getUserId());
 		commandSendTrail.setUpdatedOn(new Date());
-
+		commandSendTrail.setDescription(commanddetalisSendDto.getDescription());
+		commandSendTrail.setUseCommand(commanddetalisSendDto.getUseCommand());
 		commandSendTrailRepository.save(commandSendTrail);
 
 	}
@@ -63,7 +64,9 @@ public class CommandSendTrailServiceImp implements CommandSendTrailService {
 
 			for (CommandSendTrail commandSendTrail : findByVechileId) {
 				CommandSendTrailDto entityToDto = CommandSendTrailDto.entityToDto(commandSendTrail);
-				entityToDto.setDto(UserDto.convertEntityToDto(collectUserDetalis.get(commandSendTrail.getUserId())));
+
+				entityToDto
+						.setUserDto(UserDto.convertEntityToDto(collectUserDetalis.get(commandSendTrail.getUserId())));
 				listOFCommandendTrail.add(entityToDto);
 
 			}

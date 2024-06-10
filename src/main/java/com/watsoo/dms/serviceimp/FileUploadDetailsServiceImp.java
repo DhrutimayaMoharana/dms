@@ -86,14 +86,26 @@ public class FileUploadDetailsServiceImp implements FileUploadDetailsService {
 						.collect(Collectors.toMap(CommandSendDetails::getId, detail -> detail));
 
 				for (FileUploadDetails fileDetails : findByIsFileExistIsNullOrIsFileExistFalse) {
+					
+					if(fileDetails.getId().equals("252")) {
+						System.out.println("inside ");
+					}
 
 					boolean isFileExit = false;
 					String filePresentOrNot = restClientService.getFilePresentOrNot(fileDetails.getFileName());
+					if(filePresentOrNot!=null) {
 					Gson gson = new Gson();
 					JsonObject resposnse = gson.fromJson(filePresentOrNot, JsonObject.class);
 					if (resposnse != null && resposnse.has("code")) {
 						String responseCode = resposnse.get("code").getAsString();
 						if (responseCode.equals("200")) {
+							if (resposnse.has("data")) {
+
+								JsonObject data = resposnse.get("data").getAsJsonObject();
+								if (data.has("fileSize")) {
+									fileDetails.setFileSize(data.get("fileSize").getAsDouble());
+								}
+							}
 
 							CommandSendDetails commandSendDetails = commandDetalisMapWIthId
 									.get(fileDetails.getCommandSendId());
@@ -108,6 +120,7 @@ public class FileUploadDetailsServiceImp implements FileUploadDetailsService {
 					}
 					fileDetails.setIsFileExist(isFileExit);
 					fileDetails.setUpdatedOn(new Date());
+					}
 
 				}
 				fileUploadDetailsRepository.saveAll(findByIsFileExistIsNullOrIsFileExistFalse);

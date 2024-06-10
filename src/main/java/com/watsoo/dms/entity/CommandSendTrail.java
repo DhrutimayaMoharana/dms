@@ -16,82 +16,102 @@ import jakarta.persistence.TemporalType;
 @Table(name = "command_details_send_trail")
 public class CommandSendTrail implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @Column(name = "user_id")
-    private Long userId;
+	@Column(name = "user_id")
+	private Long userId;
 
-    @Column(name = "command")
-    private String command;
+	@Column(name = "command")
+	private String command;
 
-    @Column(name = "vechile_id")
-    private Long vechileId;
+	@Column(name = "vechile_id")
+	private Long vechileId;
 
-    @Column(name = "created_on", updatable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date createdOn;
+	@Column(name = "created_on", updatable = false)
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date createdOn;
 
-    @Column(name = "updated_on")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date updatedOn;
+	@Column(name = "updated_on")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date updatedOn;
 
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
+	@Column(name = "use_command")
+	private String useCommand;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	@Column(name = "command_description")
+	private String description;
 
-    public Long getUserId() {
-        return userId;
-    }
+	// Getters and Setters
+	public Long getId() {
+		return id;
+	}
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public String getCommand() {
-        return command;
-    }
+	public Long getUserId() {
+		return userId;
+	}
 
-    public void setCommand(String command) {
-        this.command = command;
-    }
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
 
-    public Long getVechileId() {
-        return vechileId;
-    }
+	public String getCommand() {
+		return command;
+	}
 
-    public void setVechileId(Long vechileId) {
-        this.vechileId = vechileId;
-    }
+	public void setCommand(String command) {
+		this.command = command;
+	}
 
-    public Date getCreatedOn() {
-        return createdOn;
-    }
+	public Long getVechileId() {
+		return vechileId;
+	}
 
-    public void setCreatedOn(Date createdOn) {
-        this.createdOn = createdOn;
-    }
+	public void setVechileId(Long vechileId) {
+		this.vechileId = vechileId;
+	}
 
-    public Date getUpdatedOn() {
-        return updatedOn;
-    }
+	public Date getCreatedOn() {
+		return createdOn;
+	}
 
-    public void setUpdatedOn(Date updatedOn) {
-        this.updatedOn = updatedOn;
-    }
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public Date getUpdatedOn() {
+		return updatedOn;
+	}
+
+	public void setUpdatedOn(Date updatedOn) {
+		this.updatedOn = updatedOn;
+	}
 
 	public CommandSendTrail() {
 		super();
 	}
-    
+
+	public String getUseCommand() {
+		return useCommand;
+	}
+
+	public void setUseCommand(String useCommand) {
+		this.useCommand = useCommand;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
 
 }
-

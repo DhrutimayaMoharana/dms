@@ -6,6 +6,8 @@ import java.util.regex.Pattern;
 import org.springframework.http.HttpStatus;
 
 import com.watsoo.dms.dto.CommandDto;
+import com.watsoo.dms.dto.CommanddetalisSendDto;
+import com.watsoo.dms.dto.EventDto;
 import com.watsoo.dms.dto.LoginRequest;
 import com.watsoo.dms.dto.Response;
 import com.watsoo.dms.dto.UserDto;
@@ -57,9 +59,7 @@ public class Validation {
 
 		if (command.getCommand() == null || command.getCommand().isEmpty()) {
 			return new Response<>("Command is required", null, 400);
-		} 
-
-		
+		}
 
 		if (command.getVechile_id() == null) {
 			return new Response<>("Vechile id is required", null, 400);
@@ -73,8 +73,57 @@ public class Validation {
 			return new Response<>("Description is required", null, 400);
 
 		}
+
+		if (command.getVechileNumber() == null) {
+			return new Response<>("Vechile Number  is required", null, 400);
+
+		}
 		return null;
 	}
 
-	
+	public static Response<?> checkCommandDetalis(CommanddetalisSendDto command) {
+
+		if (command.getVechileId() == null) {
+			return new Response<>("Vechile id is required", null, 400);
+		}
+
+		if (command.getUserId() == null) {
+			return new Response<>("User  is required", null, 400);
+		}
+
+		if (command.getCommand() == null && command.getCommand().isEmpty()) {
+			return new Response<>("Command Can't be Empty", null, 400);
+		}
+
+		if (command.getDescription() == null) {
+			return new Response<>("Description is required", null, 400);
+
+		}
+
+		if (command.getUseCommand() == null) {
+			return new Response<>("The 'useCommand' field is required.", null, 400);
+
+		}
+
+		if (command.getDeviceId() == null)
+			return new Response<>("Device id is required", null, 400);
+		return null;
+
+	}
+
+	public static Response<?> checkEventUpdateDto(EventDto eventDto) {
+
+		if (eventDto.getId() == null) {
+			return new Response<>("Event id is required", null, 400);
+		}
+
+		if (eventDto.getRemarkId() == null) {
+			return new Response<>("Remark id is required", null, 400);
+		}
+		if (eventDto.getRemark() == null) {
+			return new Response<>("Remark  is required", null, 400);
+		}
+		return null;
+	}
+
 }

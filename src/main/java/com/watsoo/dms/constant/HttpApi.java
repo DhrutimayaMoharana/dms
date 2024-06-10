@@ -13,4 +13,8 @@ public class HttpApi {
 	public static final String EVENTS_DETALIS_FEATH_END_POINT = "/api/reports/events";
 	
 	public static final String POISITIONS = "/api/positions";
+	
+	public static final String STOP_REPORT = "/api/reports/stops";
+	
+	
 }

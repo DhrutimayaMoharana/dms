@@ -65,6 +65,9 @@ public class Event {
 	@Column(name = "event_id")
 	private Long eventId;
 
+	@Column(name = "remark_id")
+	private Integer remarkId;
+
 	public Event() {
 	}
 
@@ -237,5 +240,15 @@ public class Event {
 	public void setEventId(Long eventId) {
 		this.eventId = eventId;
 	}
+
+	public Integer getRemarkId() {
+		return remarkId;
+	}
+
+	public void setRemarkId(Integer remarkId) {
+		this.remarkId = remarkId;
+	}
+	
+	
 
 }

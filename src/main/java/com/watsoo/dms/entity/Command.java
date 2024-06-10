@@ -21,7 +21,7 @@ public class Command implements Serializable {
 	private Long id;
 
 	@Column(name = "device_model")
-	private String ddevicModelNumber;
+	private String devicModelNumber;
 
 	@Column(name = "command")
 	private String command;
@@ -47,8 +47,8 @@ public class Command implements Serializable {
 	@Column(name = "created_on")
 	private Date createdOn;
 	
-	@Column(name = "updated_on")
-	private Date updatedOn;
+	@Column(name = "vechile_number")
+	private String vehicleNumber;
 
 	public Long getId() {
 		return id;
@@ -58,12 +58,13 @@ public class Command implements Serializable {
 		this.id = id;
 	}
 
-	public String getDdevicModelNumber() {
-		return ddevicModelNumber;
+
+	public String getDevicModelNumber() {
+		return devicModelNumber;
 	}
 
-	public void setDdevicModelNumber(String ddevicModelNumber) {
-		this.ddevicModelNumber = ddevicModelNumber;
+	public void setDevicModelNumber(String devicModelNumber) {
+		this.devicModelNumber = devicModelNumber;
 	}
 
 	public String getCommand() {
@@ -135,12 +136,12 @@ public class Command implements Serializable {
 		this.createdOn = createdOn;
 	}
 
-	public Date getUpdatedOn() {
-		return updatedOn;
+	public String getVehicleNumber() {
+		return vehicleNumber;
 	}
 
-	public void setUpdatedOn(Date updatedOn) {
-		this.updatedOn = updatedOn;
+	public void setVehicleNumber(String vehicleNumber) {
+		this.vehicleNumber = vehicleNumber;
 	}
 
 	public Command() {
