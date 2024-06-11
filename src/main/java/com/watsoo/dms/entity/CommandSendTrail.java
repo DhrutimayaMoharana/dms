@@ -35,10 +35,6 @@ public class CommandSendTrail implements Serializable {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date createdOn;
 
-	@Column(name = "updated_on")
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date updatedOn;
-
 	@Column(name = "use_command")
 	private String useCommand;
 
@@ -85,15 +81,6 @@ public class CommandSendTrail implements Serializable {
 	public void setCreatedOn(Date createdOn) {
 		this.createdOn = createdOn;
 	}
-
-	public Date getUpdatedOn() {
-		return updatedOn;
-	}
-
-	public void setUpdatedOn(Date updatedOn) {
-		this.updatedOn = updatedOn;
-	}
-
 	public CommandSendTrail() {
 		super();
 	}

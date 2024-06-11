@@ -58,7 +58,9 @@ public class Validation {
 	public static Response<?> validateCommandDto(CommandDto command) {
 
 		if (command.getCommand() == null || command.getCommand().isEmpty()) {
-			return new Response<>("Command is required", null, 400);
+		    return new Response<>("Command is required", null, 400);
+		} else if (!command.getCommand().endsWith("#")) {
+		    return new Response<>("Command must end with #", null, 400);
 		}
 
 		if (command.getVechile_id() == null) {

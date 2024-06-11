@@ -33,21 +33,26 @@ public class CommandSendTrailServiceImp implements CommandSendTrailService {
 
 	@Override
 	public void saveManualCommand(CommanddetalisSendDto commanddetalisSendDto) {
+		
+		try {
 		CommandSendTrail commandSendTrail = new CommandSendTrail();
 
 		commandSendTrail.setCommand(commanddetalisSendDto.getCommand());
 		commandSendTrail.setVechileId(commanddetalisSendDto.getVechileId());
 		commandSendTrail.setCreatedOn(new Date());
 		commandSendTrail.setUserId(commanddetalisSendDto.getUserId());
-		commandSendTrail.setUpdatedOn(new Date());
 		commandSendTrail.setDescription(commanddetalisSendDto.getDescription());
 		commandSendTrail.setUseCommand(commanddetalisSendDto.getUseCommand());
 		commandSendTrailRepository.save(commandSendTrail);
+		}catch (Exception e) {
+		}
 
 	}
 
 	@Override
 	public Response<?> getAllCommandByVechileId(Long vechileId) {
+		
+		try {
 		if (vechileId == null) {
 			return new Response<>("Vechile Id Required", null, 400);
 		}
@@ -71,11 +76,14 @@ public class CommandSendTrailServiceImp implements CommandSendTrailService {
 
 			}
 
-			Collections.sort(listOFCommandendTrail, Comparator.comparing(CommandSendTrailDto::getUpdatedOn).reversed());
+			Collections.sort(listOFCommandendTrail, Comparator.comparing(CommandSendTrailDto::getCreatedOn).reversed());
 
 		}
 
 		return new Response<>("Success", listOFCommandendTrail, 200);
+		}catch (Exception e) {
+			return new Response<>("Something went wrong", null, 400);
+		}
 
 	}
 

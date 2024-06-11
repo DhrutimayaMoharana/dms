@@ -40,6 +40,7 @@ import com.watsoo.dms.dto.PaginatedResponseDto;
 import com.watsoo.dms.dto.Response;
 import com.watsoo.dms.entity.Configuration;
 import com.watsoo.dms.entity.CredentialMaster;
+import com.watsoo.dms.entity.Driver;
 import com.watsoo.dms.entity.Event;
 import com.watsoo.dms.entity.Remark;
 import com.watsoo.dms.entity.User;
@@ -78,6 +79,9 @@ public class EventServiceImp implements EventService {
 	@Autowired
 	private RemarkRepository remarkRepository;
 
+	@Autowired
+	private VehicleRepository vehicleRepository;
+
 	@Value("${file.get.url}")
 	String fileUrl;
 
@@ -87,11 +91,11 @@ public class EventServiceImp implements EventService {
 
 	@Override
 	public Response<?> getAllEvent(int pageSize, int pageNo, String vehicleNo, String driverName, String eventType,
-			String searchKey, String fromDate, String toDate, String dlNumber) {
+			String searchKey, String fromDate, String toDate, String dlNumber, Integer remarkId) {
 
 		try {
 			PaginatedRequestDto paginatedRequest = new PaginatedRequestDto(pageSize, pageNo, vehicleNo, driverName,
-					eventType, searchKey, fromDate, toDate, dlNumber);
+					eventType, searchKey, fromDate, toDate, dlNumber, remarkId);
 			Pageable pageable = pageSize > 0 ? PageRequest.of(pageNo, pageSize) : Pageable.unpaged();
 			Page<Event> findAllEvent = eventRepository.findAll(paginatedRequest, pageable);
 			List<Event> events = findAllEvent.getContent();
@@ -152,11 +156,13 @@ public class EventServiceImp implements EventService {
 
 			eventsAllDetalisForDashBoard.setPendingRemark(pendingRemark);
 			eventsAllDetalisForDashBoard.setActionTakenRemark(actionTakenRemark);
-			PaginatedResponseDto<Object> paginatedResponseDto = new PaginatedResponseDto<>(eventRepository.count(),
-					events.size(), findAllEvent.getTotalPages(), pageNo, eventsdto, eventsAllDetalisForDashBoard);
+			PaginatedResponseDto<Object> paginatedResponseDto = new PaginatedResponseDto<>(
+					eventRepository.countEventsExcludingType("POWER_CUT"), eventsdto.size(),
+					findAllEvent.getTotalPages(), pageNo, eventsdto, eventsAllDetalisForDashBoard);
 			return new Response<>("Event List", paginatedResponseDto, HttpStatus.OK.value());
 
 		} catch (Exception e) {
+			e.printStackTrace();
 			return new Response<>("Error occurred while processing Event list", null, HttpStatus.BAD_REQUEST.value());
 
 		}
@@ -447,23 +453,36 @@ public class EventServiceImp implements EventService {
 			int totalActiveVehicle = 0;
 			int totalInActiveVehicle = 0;
 
+			Map<String, Integer> vechileEventCountMap = new HashMap<>();
 			if (eventList != null && eventList.size() > 0) {
 				totalEventCount = eventList.size();
 				for (Event event : eventList) {
-					EventType eventType = event.getEventType();
-					if (eventType != null) {
+					if (!event.getEventType().equals(EventType.POWER_CUT.name())) {
+						String vehicleNo = event.getVehicleNo();
 
-						switch (eventType) {
-						case YAWN_ALERT -> yawningCount++;
-						case PHONE_CALLING -> mobileUsageCount++;
-						case DISTRACTION -> distractionCount++;
-						case SMOKING_ALERT -> smokingCount++;
-						case CLOSE_EYES -> closeEyesCount++;
-						case NO_FACE -> noFaceCount++;
-						case LOW_HEAD -> lowHeadCount++;
-						case DRINKING -> drinkingCount++;
-						default -> {
+						if (vechileEventCountMap == null || vechileEventCountMap.get(vehicleNo) == null) {
+							vechileEventCountMap.putIfAbsent(vehicleNo, 0);
+						} else {
+							vechileEventCountMap.put(vehicleNo, vechileEventCountMap.get(vehicleNo) + 1);
 						}
+
+						EventType eventType = event.getEventType();
+						if (eventType != null) {
+
+							switch (eventType) {
+							case YAWN_ALERT -> yawningCount++;
+							case PHONE_CALLING -> mobileUsageCount++;
+							case DISTRACTION -> distractionCount++;
+							case SMOKING_ALERT -> smokingCount++;
+							case CLOSE_EYES -> closeEyesCount++;
+							case NO_FACE -> noFaceCount++;
+							case LOW_HEAD -> lowHeadCount++;
+							case DRINKING -> drinkingCount++;
+
+//						deviceEventCountMap.put(deviceId, deviceEventCountMap.get(deviceId) + 1);
+							default -> {
+							}
+							}
 						}
 					}
 				}
@@ -474,6 +493,7 @@ public class EventServiceImp implements EventService {
 					totalEventCount);
 			eventTypeCountDto.setTotalActiveVehicle(totalActiveVehicle);
 			eventTypeCountDto.setTotalInActiveVehicle(totalInActiveVehicle);
+			eventTypeCountDto.setVehicleEventCountMap(vechileEventCountMap);
 
 			return new Response<>("Events Counts fetched successfully", eventTypeCountDto, 200);
 		} catch (Exception e) {
@@ -486,15 +506,21 @@ public class EventServiceImp implements EventService {
 	@Override
 	public Response<?> getAllEventType() {
 //		List<EventType> eventTypeList = Arrays.asList(EventType.values());
-		List<EventType> eventTypeList = Stream.of(EventType.values()).collect(Collectors.toList());
+		List<EventType> eventTypeList = Stream.of(EventType.values()).filter(event -> event != EventType.POWER_CUT)
+				.collect(Collectors.toList());
 		return new Response<>("All event types fetched successfully", eventTypeList, 200);
 	}
 
 	@Override
 	public void saveEvent(String events, List<Vehicle> vehicles) {
 
-		Map<Integer, Vehicle> vechileMapByDeviceId = vehicles.stream()
+//		Map<Integer, Vehicle> vechileMapByDeviceId = vehicles.stream()
+//				.collect(Collectors.toMap(Vehicle::getDeviceId, Function.identity()));
+
+		List<Vehicle> allVehicle = vehicleRepository.findAll();
+		Map<Integer, Vehicle> vechileMapByDeviceId = allVehicle.stream()
 				.collect(Collectors.toMap(Vehicle::getDeviceId, Function.identity()));
+
 
 		Gson gson = new Gson();
 		JsonArray eventList = gson.fromJson(events, JsonArray.class);
@@ -521,24 +547,28 @@ public class EventServiceImp implements EventService {
 						eventObject.setEventServerCreateTime(
 								TimeUtility.getTimeStringToDateFormat(event.get("eventTime").getAsString()));
 						Long deviceId = event.get("deviceId").getAsLong();
+						Vehicle vehicle = vechileMapByDeviceId.get(deviceId.intValue());
 						Long positionId = event.get("positionId").getAsLong();
 						eventObject.setDeviceId(event.get("deviceId").getAsLong());
 						eventObject.setPositionId(positionId);
 						eventObject.setEventId(event.get("id").getAsLong());
+						
 						// Its update When Vechile Service call
 						// -->
-						eventObject.setDriverName("Virat");
-						eventObject.setDriverPhone("5343435353");
-						eventObject.setChassisNumber("4353537387383");
-						eventObject.setVehicleNo("OODD44DD");
-						eventObject.setImeiNo("11111");
+						
+						
+						eventObject.setChassisNumber(vehicle.getChassisNumber());
+						eventObject.setVehicleNo(vehicle.getVehicleNumber());
+						eventObject.setVehicleID(vehicle.getId());
+						eventObject.setImeiNo(vehicle.getImeiNo());
 						eventObject.setRemark(findByStatus.getStatus());
 						eventObject.setRemarkId(findByStatus.getId());
 
-						eventObject.setDlNo(new Random().ints(12, 0, 62)
-								.mapToObj(
-										i -> "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".charAt(i))
-								.collect(StringBuilder::new, StringBuilder::append, StringBuilder::append).toString());
+						Driver driver = vehicle.getDriver();
+						eventObject.setDriverName(driver.getName());
+						eventObject.setDriverPhone(driver.getPhoneNumber());
+						eventObject.setDlNo(driver.getDlNumber());
+						eventObject.setDriverId(driver.getId());
 						// <--
 						positionIdList.add(positionId);
 						eventsDataMap.put(positionId, eventObject);
@@ -650,7 +680,7 @@ public class EventServiceImp implements EventService {
 	}
 
 	@Override
-	public Response<?> getEventDetalisForDriverPerfomance(String value) {
+	public Response<?> getEventDetalisForDriverPerfomance(String value, String driverName) {
 		String fromDate = "";
 		String toDate = "";
 		String addedFromTime = "00:00:00";
@@ -767,13 +797,17 @@ public class EventServiceImp implements EventService {
 				return new Response<>("Provide The Valid Data in  Value Key ", null, 400);
 			}
 
-			List<Event> findEventsBetweenDates = eventRepository.findEventsBetweenDates(fromDate, toDate);
+			List<Event> findEventsBetweenDates = new ArrayList<>();
+			if (driverName == null || driverName.isEmpty()) {
+				findEventsBetweenDates = eventRepository.findEventsBetweenDates(fromDate, toDate);
+			} else {
+				findEventsBetweenDates = eventRepository.findEventsBetweenDatesAndDriver(fromDate, toDate, driverName);
+			}
 
 			Map<String, Integer> twoDateBetweenEvent = getDataBetweenTwoDates(findEventsBetweenDates,
 					fromPriviosStartDateTime, toPriviosEndDateTime, fromCurrentStartDateTime, toCurrentEndDateTime);
 
 			Map<String, List<Event>> categorizeEventsByDlNo = categorizeEventsByDlNo(findEventsBetweenDates);
-			Map<String, Map<String, Double>> driverEvenntCountMonth = new HashMap<>();
 
 			List<DriverPerformanceDto> driverPerformanceDto = new ArrayList<>();
 
@@ -782,11 +816,11 @@ public class EventServiceImp implements EventService {
 				DriverPerformanceDto obj = new DriverPerformanceDto();
 
 				List<Event> list = categorizeEventsByDlNo.get(dlNumber);
-				Map<String, Double> countEventsByMonth = countEventsByRange(list, twoDateBetweenEvent,
+				Map<String, Integer> countEventsByMonth = countEventsByRange(list, twoDateBetweenEvent,
 						fromPriviosStartDateTime, toPriviosEndDateTime, fromCurrentStartDateTime, toCurrentEndDateTime);
 
 				obj.setDriverName(list.get(0).getDriverName() + " (" + dlNumber + ")");
-				for (Map.Entry<String, Double> rangeCountByDriver : countEventsByMonth.entrySet()) {
+				for (Map.Entry<String, Integer> rangeCountByDriver : countEventsByMonth.entrySet()) {
 					String key = rangeCountByDriver.getKey();
 
 					if (key.equals("previousRangeCount")) {
@@ -811,7 +845,7 @@ public class EventServiceImp implements EventService {
 		}
 	}
 
-	private Map<String, Double> countEventsByRange(List<Event> eventList, Map<String, Integer> twoDateBetweenEvent,
+	private Map<String, Integer> countEventsByRange(List<Event> eventList, Map<String, Integer> twoDateBetweenEvent,
 			String fromPriviosStartDateTime, String toPriviosEndDateTime, String fromCurrentStartDateTime,
 			String toCurrentEndDateTime) {
 
@@ -825,14 +859,15 @@ public class EventServiceImp implements EventService {
 			eventCountByMonth.put(key, eventCountByMonth.getOrDefault(key, 0) + 1);
 		}
 
-		Map<String, Double> eventCountByMonthWise = new HashMap<>();
+		Map<String, Integer> eventCountByMonthWise = new HashMap<>();
 
 		for (String key : eventCountByMonth.keySet()) {
 
 			Integer baseMonthEvent = twoDateBetweenEvent.get(key);
 			Integer actualEvent = eventCountByMonth.get(key);
 
-			eventCountByMonthWise.put(key, calculatePerformance(actualEvent, baseMonthEvent));
+//			eventCountByMonthWise.put(key, calculatePerformance(actualEvent, baseMonthEvent));
+			eventCountByMonthWise.put(key, actualEvent);
 
 		}
 

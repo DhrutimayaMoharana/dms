@@ -67,6 +67,12 @@ public class Event {
 
 	@Column(name = "remark_id")
 	private Integer remarkId;
+	
+	@Column(name = "driver_id")
+	private Long driverId;
+	
+	@Column(name = "vehicle_id")
+	private Long vehicleID;
 
 	public Event() {
 	}
@@ -248,7 +254,22 @@ public class Event {
 	public void setRemarkId(Integer remarkId) {
 		this.remarkId = remarkId;
 	}
-	
+
+	public Long getDriverId() {
+		return driverId;
+	}
+
+	public void setDriverId(Long driverId) {
+		this.driverId = driverId;
+	}
+
+	public Long getVehicleID() {
+		return vehicleID;
+	}
+
+	public void setVehicleID(Long vehicleID) {
+		this.vehicleID = vehicleID;
+	}
 	
 
 }

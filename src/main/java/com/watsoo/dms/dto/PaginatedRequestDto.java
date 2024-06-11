@@ -26,6 +26,8 @@ public class PaginatedRequestDto {
 
 	private Long vechileId;
 
+	private Integer remarkId;
+
 	@JsonFormat(pattern = "yyyy-MM-dd")
 	private String fromDate;
 
@@ -136,6 +138,14 @@ public class PaginatedRequestDto {
 		this.vechileId = vechileId;
 	}
 
+	public Integer getRemarkId() {
+		return remarkId;
+	}
+
+	public void setRemarkId(Integer remarkId) {
+		this.remarkId = remarkId;
+	}
+
 	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String driverName, String eventType,
 			String searchKey) {
 		this.pageSize = pageSize;
@@ -159,7 +169,7 @@ public class PaginatedRequestDto {
 	}
 
 	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String driverName, String eventType,
-			String searchKey, String fromDate, String toDate, String dlNumber) {
+			String searchKey, String fromDate, String toDate, String dlNumber, Integer remarkid) {
 		this.pageSize = pageSize;
 		this.pageNo = pageNo;
 		this.driverName = driverName;
@@ -169,6 +179,7 @@ public class PaginatedRequestDto {
 		this.toDate = toDate;
 		this.fromDate = fromDate;
 		this.dlNumber = dlNumber;
+		this.remarkId = remarkid;
 	}
 
 	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String vehicleName, String imeiNumber) {
@@ -193,6 +204,13 @@ public class PaginatedRequestDto {
 		this.vechileId = vechileId;
 		this.imeiNumber = imeiNumber;
 
+	}
+
+	public PaginatedRequestDto(String fromDate, String toDate, String driverName) {
+		this.driverName = driverName;
+
+		this.toDate = toDate;
+		this.fromDate = fromDate;
 	}
 
 }

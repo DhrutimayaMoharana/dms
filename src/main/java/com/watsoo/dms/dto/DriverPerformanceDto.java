@@ -5,28 +5,27 @@ public class DriverPerformanceDto {
 
 	private String driverName;
 	
-	Double previousRangeCount;
-	Double currentRangeCount;
+	Integer previousRangeCount;
+	Integer currentRangeCount;
 	public String getDriverName() {
 		return driverName;
 	}
 	public void setDriverName(String driverName) {
 		this.driverName = driverName;
 	}
-	public Double getPreviousRangeCount() {
+	public Integer getPreviousRangeCount() {
 		return previousRangeCount;
 	}
-	public void setPreviousRangeCount(Double previousRangeCount) {
+	public void setPreviousRangeCount(Integer previousRangeCount) {
 		this.previousRangeCount = previousRangeCount;
 	}
-	public Double getCurrentRangeCount() {
+	public Integer getCurrentRangeCount() {
 		return currentRangeCount;
 	}
-	public void setCurrentRangeCount(Double currentRangeCount) {
+	public void setCurrentRangeCount(Integer currentRangeCount) {
 		this.currentRangeCount = currentRangeCount;
 	}
 	
-
 	
 
 }

@@ -3,7 +3,7 @@ package com.watsoo.dms.enums;
 public enum EventType {
 
 	CLOSE_EYES("closeEyes"), DISTRACTION("distraction"), LOW_HEAD("lowHead"), DRINKING("drinking"), NO_FACE("noFace"),
-	PHONE_CALLING("phoneCalling"), SMOKING_ALERT("smoking"), YAWN_ALERT("yawning"),POWER_CUT("powerCut");
+	PHONE_CALLING("phoneCalling"), SMOKING_ALERT("smoking"), YAWN_ALERT("yawning"), POWER_CUT("powerCut"), ALL("All");
 
 	private final String type;
 

@@ -24,9 +24,17 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	@Query(value = "SELECT * FROM event e WHERE DATE(e.event_server_create_time) BETWEEN :startDate AND :endDate", nativeQuery = true)
 	List<Event> findEventsBetweenDates(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
+	@Query(value = "SELECT COUNT(id) FROM event e WHERE e.event_type <> :excludedEventType",nativeQuery = true)
+	long countEventsExcludingType(@Param("excludedEventType") String excludedEventType);
+
+	    @Query(value = "SELECT * FROM event e WHERE DATE(e.event_server_create_time) BETWEEN :startDate AND :endDate AND e.driver_name = :driverName", nativeQuery = true)
+	    List<Event> findEventsBetweenDatesAndDriver(@Param("startDate") String startDate, @Param("endDate") String endDate, @Param("driverName") String driverName);
+
 	public static Specification<Event> search(PaginatedRequestDto paginatedRequest) {
 		return (root, cq, cb) -> {
 			Predicate predicate = cb.conjunction();
+
+			predicate = cb.and(predicate, cb.notEqual(root.get("eventType"), "POWER_CUT"));
 
 			if (paginatedRequest.getFromDate() != null && paginatedRequest.getToDate() != null) {
 				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -52,13 +60,18 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 				predicate = cb.and(predicate, cb.equal(root.get("dlNo"), paginatedRequest.getDlNumber()));
 			}
 
+			if (paginatedRequest.getRemarkId() != null) {
+				predicate = cb.and(predicate, cb.equal(root.get("remarkId"), paginatedRequest.getRemarkId()));
+			}
+
 			if (paginatedRequest.getDriverName() != null) {
 				predicate = cb.and(predicate, cb.equal(root.get("driverName"), paginatedRequest.getDriverName()));
 			}
 			if (paginatedRequest.getVehicleNo() != null) {
 				predicate = cb.and(predicate, cb.equal(root.get("vehicleNo"), paginatedRequest.getVehicleNo()));
 			}
-			if (paginatedRequest.getEventType() != null) {
+			if (paginatedRequest.getEventType() != null
+					&& !paginatedRequest.getEventType().equals(EventType.ALL.name())) {
 				try {
 					EventType eventType = EventType.valueOf(paginatedRequest.getEventType());
 					predicate = cb.and(predicate, cb.equal(root.get("eventType"), eventType));
@@ -71,7 +84,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 				Predicate searchPredicate = cb.or(
 						cb.like(root.get("driverName"), "%" + paginatedRequest.getSearchKey() + "%"),
 						cb.like(root.get("vehicleNo"), "%" + paginatedRequest.getSearchKey() + "%"),
-						cb.like(root.get("eventType"), "%" + paginatedRequest.getSearchKey() + "%"));
+						cb.like(root.get("eventType"), "%" + paginatedRequest.getSearchKey() + "%"),
+						cb.like(root.get("remark"), "%" + paginatedRequest.getSearchKey() + "%"),
+						cb.like(root.get("dlNo"), "%" + paginatedRequest.getSearchKey() + "%"));
 
 				predicate = cb.and(predicate, searchPredicate);
 			}

@@ -1,5 +1,8 @@
 package com.watsoo.dms.dto;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class EventTypeCountDto {
 
 	long yawningCount;
@@ -17,6 +20,10 @@ public class EventTypeCountDto {
 	int countDefaulterDriver;
 	Integer pendingRemark ;
 	Integer actionTakenRemark ;
+	
+	Map<String, Integer> vehicleEventCountMap;
+	
+	
 
 	public long getYawningCount() {
 		return yawningCount;
@@ -144,6 +151,14 @@ public class EventTypeCountDto {
 
 	public void setActionTakenRemark(Integer actionTakenRemark) {
 		this.actionTakenRemark = actionTakenRemark;
+	}
+	
+	public Map<String, Integer> getVehicleEventCountMap() {
+		return vehicleEventCountMap;
+	}
+
+	public void setVehicleEventCountMap(Map<String, Integer> vehicleEventCountMap) {
+		this.vehicleEventCountMap = vehicleEventCountMap;
 	}
 
 	public EventTypeCountDto(long yawningCount, long mobileUsageCount, long distractionCount,

@@ -22,14 +22,14 @@ public class EventController {
 	private EventService eventService;
 
 	@GetMapping("/getall")
-	public ResponseEntity<?> getAllExcelFileName(@RequestParam(required = false, defaultValue = "0") int pageSize,
+	public ResponseEntity<?> getAllEvent(@RequestParam(required = false, defaultValue = "0") int pageSize,
 			@RequestParam(required = false, defaultValue = "0") int pageNo,
 			@RequestParam(required = false) String vehicleNo, @RequestParam(required = false) String driverName,
 			@RequestParam(required = false) String eventType, @RequestParam(required = false) String searchKey,
 			@RequestParam(required = false) String fromDate, @RequestParam(required = false) String toDate,
-			@RequestParam(required = false) String dlNumber) {
+			@RequestParam(required = false) String dlNumber, @RequestParam(required = false) Integer remarkId) {
 		Response<?> response = eventService.getAllEvent(pageSize, pageNo, vehicleNo, driverName, eventType, searchKey,
-				fromDate, toDate, dlNumber);
+				fromDate, toDate, dlNumber, remarkId);
 		return new ResponseEntity<>(response, HttpStatus.valueOf(response.getResponseCode()));
 	}
 
@@ -69,8 +69,9 @@ public class EventController {
 	}
 
 	@GetMapping("/v1/driver/performance")
-	public ResponseEntity<?> getDriverPerfomanceByEvent(@RequestParam String value) {
-		Response<?> response = eventService.getEventDetalisForDriverPerfomance(value);
+	public ResponseEntity<?> getDriverPerfomanceByEvent(@RequestParam String value,
+			@RequestParam(required = false) String driverName) {
+		Response<?> response = eventService.getEventDetalisForDriverPerfomance(value,driverName);
 		return new ResponseEntity<>(response, HttpStatus.valueOf(response.getResponseCode()));
 
 	}

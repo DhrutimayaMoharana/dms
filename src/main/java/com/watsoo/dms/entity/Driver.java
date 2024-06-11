@@ -1,6 +1,5 @@
 package com.watsoo.dms.entity;
 
-
 import java.util.Date;
 
 import jakarta.persistence.Column;
@@ -8,28 +7,23 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name = "driver")
 public class Driver {
-	
+
 	@Id
 	@Column(name = "id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	
+
 	@Column(name = "name")
 	private String name;
-	
+
 	@Column(name = "phone")
 	private String phoneNumber;
-	
-	private Long vehicle_id;
-	
-	
-	
-	
+
 	@Column(name = "created_on")
 	private Date createdOn;
 
@@ -38,8 +32,14 @@ public class Driver {
 
 	@Column(name = "is_active")
 	private Boolean isActive;
-	
+
+	@Column(name = "dl_number")
+	private String dlNumber;
+
 	private int age;
+
+	@Column(name = "join_date")
+	private String joinDate;
 
 	private String dob;
 
@@ -83,14 +83,6 @@ public class Driver {
 		this.dob = dob;
 	}
 
-	public Long getVehicle_id() {
-		return vehicle_id;
-	}
-
-	public void setVehicle_id(Long vehicle_id) {
-		this.vehicle_id = vehicle_id;
-	}
-
 	public Date getCreatedOn() {
 		return createdOn;
 	}
@@ -115,8 +107,21 @@ public class Driver {
 		this.isActive = isActive;
 	}
 
-	
-	
+	public String getDlNumber() {
+		return dlNumber;
+	}
+
+	public void setDlNumber(String dlNumber) {
+		this.dlNumber = dlNumber;
+	}
+
+	public String getJoinDate() {
+		return joinDate;
+	}
+
+	public void setJoinDate(String joinDate) {
+		this.joinDate = joinDate;
+	}
 	
 
 }

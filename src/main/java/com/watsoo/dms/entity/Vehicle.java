@@ -7,6 +7,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Vehicle {
@@ -39,6 +41,10 @@ public class Vehicle {
 	
 	@Column(name = "model")
 	private String model;
+	
+	@ManyToOne
+    @JoinColumn(name = "driver_id")
+    private Driver driver;
     
     public String getImeiNo() {
 		return imeiNo;
@@ -145,8 +151,15 @@ public class Vehicle {
 
 	public void setModel(String model) {
 		this.model = model;
+	}
+
+	public Driver getDriver() {
+		return driver;
+	}
+
+	public void setDriver(Driver driver) {
+		this.driver = driver;
 	}   
-	
 	
 	
    

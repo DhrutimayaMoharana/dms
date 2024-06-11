@@ -16,7 +16,6 @@ public class CommandSendTrailDto {
 
 	private Date createdOn;
 
-	private Date updatedOn;
 
 	private String useCommand;
 
@@ -62,13 +61,7 @@ public class CommandSendTrailDto {
 		this.createdOn = createdOn;
 	}
 
-	public Date getUpdatedOn() {
-		return updatedOn;
-	}
 
-	public void setUpdatedOn(Date updatedOn) {
-		this.updatedOn = updatedOn;
-	}
 
 	public String getUseCommand() {
 		return useCommand;
@@ -94,7 +87,6 @@ public class CommandSendTrailDto {
 
 		CommandSendTrailDto obj = new CommandSendTrailDto();
 		obj.setId(commandSendTrail.getId());
-		obj.setUpdatedOn(commandSendTrail.getUpdatedOn());
 		obj.setCreatedOn(commandSendTrail.getCreatedOn());
 		obj.setVechileId(commandSendTrail.getVechileId());
 		obj.setUseCommand(commandSendTrail.getUseCommand());
