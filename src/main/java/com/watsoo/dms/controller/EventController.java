@@ -70,8 +70,8 @@ public class EventController {
 
 	@GetMapping("/v1/driver/performance")
 	public ResponseEntity<?> getDriverPerfomanceByEvent(@RequestParam String value,
-			@RequestParam(required = false) String driverName) {
-		Response<?> response = eventService.getEventDetalisForDriverPerfomance(value,driverName);
+			@RequestParam(required = false) String dlNumber) {
+		Response<?> response = eventService.getEventDetalisForDriverPerfomance(value,dlNumber);
 		return new ResponseEntity<>(response, HttpStatus.valueOf(response.getResponseCode()));
 
 	}

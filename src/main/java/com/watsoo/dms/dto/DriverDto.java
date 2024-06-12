@@ -1,6 +1,10 @@
 package com.watsoo.dms.dto;
 
+import java.util.Date;
+
 import com.watsoo.dms.entity.Driver;
+
+import jakarta.persistence.Column;
 
 public class DriverDto {
 
@@ -13,6 +17,14 @@ public class DriverDto {
 	private int age;
 
 	private String dob;
+
+	private Date updatedOn;
+
+	private Boolean isActive;
+
+	private String dlNumber;
+
+	private String joinDate;
 
 	public Long getId() {
 		return id;
@@ -57,6 +69,39 @@ public class DriverDto {
 	public DriverDto() {
 		super();
 	}
+	
+
+	public Date getUpdatedOn() {
+		return updatedOn;
+	}
+
+	public void setUpdatedOn(Date updatedOn) {
+		this.updatedOn = updatedOn;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public String getDlNumber() {
+		return dlNumber;
+	}
+
+	public void setDlNumber(String dlNumber) {
+		this.dlNumber = dlNumber;
+	}
+
+	public String getJoinDate() {
+		return joinDate;
+	}
+
+	public void setJoinDate(String joinDate) {
+		this.joinDate = joinDate;
+	}
 
 	public static Driver convertDtoToEntity(DriverDto dto) {
 		Driver driver = new Driver();
@@ -74,6 +119,10 @@ public class DriverDto {
 		driverDto.setPhoneNumber(driver.getPhoneNumber());
 		driverDto.setAge(driver.getAge());
 		driverDto.setDob(driver.getDob());
+		driverDto.setDlNumber(driver.getDlNumber());
+		driverDto.setJoinDate(driver.getJoinDate());
+		driverDto.setUpdatedOn(driver.getUpdatedOn());
+		driverDto.setIsActive(driver.getIsActive());
 		return driverDto;
 	}
 

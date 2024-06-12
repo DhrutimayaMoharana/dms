@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.watsoo.dms.entity.Event;
 
+import jakarta.persistence.Column;
+
 public class EventDto {
 	private Long id;
 	private Long vehicleId;
@@ -29,11 +31,15 @@ public class EventDto {
 
 	private Integer remarkId;
 
-	private String registrationCertificate;
 
 	private String remark;
 
 	private Date updateOn;
+	
+	
+	private Double speed;
+	
+	private Boolean ignition;
 
 	public Long getId() {
 		return id;
@@ -216,12 +222,22 @@ public class EventDto {
 		this.remarkId = remarkId;
 	}
 
-	public String getRegistrationCertificate() {
-		return registrationCertificate;
+
+	
+	public Double getSpeed() {
+		return speed;
 	}
 
-	public void setRegistrationCertificate(String registrationCertificate) {
-		this.registrationCertificate = registrationCertificate;
+	public void setSpeed(Double speed) {
+		this.speed = speed;
+	}
+
+	public Boolean getIgnition() {
+		return ignition;
+	}
+
+	public void setIgnition(Boolean ignition) {
+		this.ignition = ignition;
 	}
 
 	public static EventDto fromEntity(Event event) {
@@ -246,8 +262,9 @@ public class EventDto {
 		dto.setUpdateOn(event.getUpdatedOn());
 		dto.setRemark(event.getRemark());
 		dto.setDlNumber(event.getDlNo());
-		dto.setRegistrationCertificate("ABCSDAD");
 		dto.setRemarkId(event.getRemarkId());
+		dto.setIgnition(event.getIgnition());
+		dto.setSpeed(event.getSpeed());
 		return dto;
 
 	}

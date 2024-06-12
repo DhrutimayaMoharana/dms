@@ -21,6 +21,8 @@ public class EventTypeCountDto {
 	Integer pendingRemark ;
 	Integer actionTakenRemark ;
 	
+	int totalEventWiseVehiclet;
+	
 	Map<String, Integer> vehicleEventCountMap;
 	
 	
@@ -159,6 +161,16 @@ public class EventTypeCountDto {
 
 	public void setVehicleEventCountMap(Map<String, Integer> vehicleEventCountMap) {
 		this.vehicleEventCountMap = vehicleEventCountMap;
+	}
+	
+	
+
+	public int getTotalEventWiseVehiclet() {
+		return totalEventWiseVehiclet;
+	}
+
+	public void setTotalEventWiseVehiclet(int totalEventWiseVehiclet) {
+		this.totalEventWiseVehiclet = totalEventWiseVehiclet;
 	}
 
 	public EventTypeCountDto(long yawningCount, long mobileUsageCount, long distractionCount,

@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.watsoo.dms.dto.EventDto;
 import com.watsoo.dms.dto.Response;
+import com.watsoo.dms.entity.Event;
 import com.watsoo.dms.entity.Vehicle;
 
 public interface EventService {
@@ -15,7 +16,7 @@ public interface EventService {
 
 	Response<?> getAllEventType();
 
-	void saveEvent(String events, List<Vehicle> vehicles);
+	Event saveEvent(String events, List<Vehicle> vehicles);
 
 	Response<?> getEventById(Long eventId);
 
@@ -23,6 +24,6 @@ public interface EventService {
 
 	Response<?> getEventDetalisForDashBoard();
 
-	Response<?> getEventDetalisForDriverPerfomance(String value, String driverName);
+	Response<?> getEventDetalisForDriverPerfomance(String value, String dlNumber);
 
 }

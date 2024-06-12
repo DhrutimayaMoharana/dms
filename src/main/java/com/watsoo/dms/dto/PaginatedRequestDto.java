@@ -146,11 +146,11 @@ public class PaginatedRequestDto {
 		this.remarkId = remarkId;
 	}
 
-	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String driverName, String eventType,
+	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String dlNumber, String eventType,
 			String searchKey) {
 		this.pageSize = pageSize;
 		this.pageNo = pageNo;
-		this.driverName = driverName;
+		this.dlNumber = dlNumber;
 		this.eventType = eventType;
 		this.vehicleNo = vehicleNo;
 		this.searchKey = searchKey;
@@ -211,6 +211,13 @@ public class PaginatedRequestDto {
 
 		this.toDate = toDate;
 		this.fromDate = fromDate;
+	}
+
+	public PaginatedRequestDto(Integer pageSize, Integer pageNo, String dlNumber) {
+		this.pageNo = pageNo;
+		this.pageSize = pageSize;
+		this.dlNumber = dlNumber;
+
 	}
 
 }

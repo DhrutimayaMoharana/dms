@@ -32,6 +32,7 @@ import com.watsoo.dms.entity.Command;
 import com.watsoo.dms.entity.CommandSendDetails;
 import com.watsoo.dms.entity.Event;
 import com.watsoo.dms.entity.Vehicle;
+import com.watsoo.dms.enums.CommandStatus;
 import com.watsoo.dms.repository.CommandRepository;
 import com.watsoo.dms.repository.CommandSendDetalisRepository;
 import com.watsoo.dms.repository.VehicleRepository;
@@ -104,6 +105,7 @@ public class CommandSendDetalisServiceImp implements CommandSendDetalisService {
 					obj.setCreateOn(LocalDateTime.now());
 					obj.setImeiNumber(event.getImeiNo());
 					obj.setUpdatedOn(LocalDateTime.now());
+					obj.setStatus(CommandStatus.UNABLE_TO_UPLOAD);
 
 					List<String> convertStringToArray = Utility.convertStringToArray(event.getEvidencePhotos());
 					obj.setNoOfFileReq(convertStringToArray.size());
@@ -175,7 +177,8 @@ public class CommandSendDetalisServiceImp implements CommandSendDetalisService {
 	public void sendCommand(int reCallCount, int processSleepTime) {
 
 		try {
-			List<CommandSendDetails> allCommands = commandSendDetalisRepository.findAll();
+			List<CommandSendDetails> allCommands = commandSendDetalisRepository
+					.findByNoOfFileUploadedIsNullAndReCallCountLessThanRecallOrReCallCountIsNull(reCallCount);
 
 			if (allCommands != null && !allCommands.isEmpty()) {
 				Set<Long> allDeviceID = allCommands.stream().map(CommandSendDetails::getDeviceId)
@@ -190,22 +193,34 @@ public class CommandSendDetalisServiceImp implements CommandSendDetalisService {
 				Map<Long, List<CommandSendDetails>> deviceIdWithMap = new HashMap<>();
 				for (CommandSendDetails commandSendDetails : allCommands) {
 
-					if (commandSendDetails.getReCallCount() == null
-							|| commandSendDetails.getReCallCount() < reCallCount) {
-						if (retrieveDeviceInfoMap != null
-								&& retrieveDeviceInfoMap.get(commandSendDetails.getDeviceId()) != null
-								&& "online".equals(
-										retrieveDeviceInfoMap.get(commandSendDetails.getDeviceId()).getStatus())) {
+					if (commandSendDetails.getNoOfFileUploaded() == null) {
 
-							deviceIdWithMap.computeIfAbsent(commandSendDetails.getDeviceId(), k -> new ArrayList<>())
-									.add(commandSendDetails);
+						if (commandSendDetails.getReCallCount() == null
+								|| commandSendDetails.getReCallCount() < reCallCount) {
+							if (retrieveDeviceInfoMap != null
+									&& retrieveDeviceInfoMap.get(commandSendDetails.getDeviceId()) != null
+									&& "online".equals(
+											retrieveDeviceInfoMap.get(commandSendDetails.getDeviceId()).getStatus())) {
 
+								deviceIdWithMap
+										.computeIfAbsent(commandSendDetails.getDeviceId(), k -> new ArrayList<>())
+										.add(commandSendDetails);
+
+							}
+							Integer countRecall = commandSendDetails.getReCallCount() == null ? 0
+									: commandSendDetails.getReCallCount() + 1;
+							commandSendDetails.setReCallCount(countRecall);
+							commandSendDetails.setReCallOn(LocalDateTime.now());
+							commandSendDetails.setUpdatedOn(LocalDateTime.now());
+
+						} else {
+							commandSendDetails.setStatus(CommandStatus.FAILED);
 						}
-						Integer countRecall = commandSendDetails.getReCallCount() == null ? 0
-								: commandSendDetails.getReCallCount() + 1;
-						commandSendDetails.setReCallCount(countRecall);
-						commandSendDetails.setReCallOn(LocalDateTime.now());
-						commandSendDetails.setUpdatedOn(LocalDateTime.now());
+
+					} else if (commandSendDetails.getNoOfFileReq() != commandSendDetails.getNoOfFileUploaded()) {
+						commandSendDetails.setStatus(CommandStatus.PARTIALY_SUCCESS);
+					} else {
+						commandSendDetails.setStatus(CommandStatus.COMPLETE_SUCCESS);
 
 					}
 

@@ -1,6 +1,7 @@
 package com.watsoo.dms.scheduler;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -18,6 +19,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.watsoo.dms.entity.Configuration;
+import com.watsoo.dms.entity.Event;
 import com.watsoo.dms.entity.Vehicle;
 import com.watsoo.dms.repository.CommandSendDetalisRepository;
 import com.watsoo.dms.repository.ConfigurationRepository;
@@ -73,7 +75,7 @@ public class ProcessEvent {
 //	@Autowired
 //	private ScheduledExecutorService scheduledExecutorService;
 
-	@Scheduled(fixedRate = 1000)
+//	@Scheduled(fixedRate = 1000)
 	public void processEvent() {
 		if (lock.tryLock()) {
 			try {
@@ -92,11 +94,17 @@ public class ProcessEvent {
 						String events = restClientService.fetchEventDataFromExternalService(vehiclesDeviceIds, "alarm",
 								fromTime, toTime);
 						if (events != null) {
-							eventService.saveEvent(events, vehicles);
+							Event saveEvent = eventService.saveEvent(events, vehicles);
 							if (eventFromTime.isPresent()) {
 								Configuration configuration = eventFromTime.get();
-								configuration.setValue(toTime);
-								configurationRepository.save(configuration);
+								if (saveEvent != null) {
+									Date date = saveEvent.getEventServerCreateTime();
+									LocalDateTime localDateTime = date.toInstant().atZone(ZoneId.systemDefault())
+											.toLocalDateTime();
+									configuration.setValue(localDateTime.format(DATE_TIME_FORMATTER));
+									configurationRepository.save(configuration);
+								}
+
 							}
 						}
 					}
@@ -107,7 +115,7 @@ public class ProcessEvent {
 		}
 	}
 
-	@Scheduled(fixedRate = 1000)
+//	@Scheduled(fixedRate = 1000)
 	public void processCommandSend() {
 
 		if (lock.tryLock()) {
@@ -129,11 +137,12 @@ public class ProcessEvent {
 					}
 				}
 
-				if (firstCall || (new Date(currentTime.getTime() + processCommand * 60000).before(new Date()))) {
+				if (firstCall || (new Date(currentTime.getTime() + processCommand * 1000).before(new Date()))) {
 					currentTime = new Date();
 					firstCall = false;
+
 					commandSendDetalisService.sendCommand(reCallCount, processSleepTime);
-					fileUploadDetailsService.updateFlleDetalis();
+					fileUploadDetailsService.updateFlleDetalis(reCallCount);
 				}
 
 //				scheduleNextRun(processCommand * 1000L);

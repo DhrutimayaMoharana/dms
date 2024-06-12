@@ -32,7 +32,11 @@ public class FileUploadDetails {
 
 	@Column(name = "updated_on")
 	private Date updatedOn;
-
+	
+	private String status;
+	
+	private Integer reCallCount;
+	
 	public Long getId() {
 		return id;
 	}
@@ -96,6 +100,23 @@ public class FileUploadDetails {
 	public void setUpdatedOn(Date updatedOn) {
 		this.updatedOn = updatedOn;
 	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public Integer getReCallCount() {
+		return reCallCount;
+	}
+
+	public void setReCallCount(Integer reCallCount) {
+		this.reCallCount = reCallCount;
+	}
+	
 	
 	
 

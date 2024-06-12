@@ -73,6 +73,12 @@ public class Event {
 	
 	@Column(name = "vehicle_id")
 	private Long vehicleID;
+	
+	@Column(name = "speed")
+	private Double speed;
+	
+	@Column(name = "ignition")
+	private Boolean ignition;
 
 	public Event() {
 	}
@@ -270,6 +276,20 @@ public class Event {
 	public void setVehicleID(Long vehicleID) {
 		this.vehicleID = vehicleID;
 	}
-	
+	public Double getSpeed() {
+		return speed;
+	}
+
+	public void setSpeed(Double speed) {
+		this.speed = speed;
+	}
+
+	public Boolean getIgnition() {
+		return ignition;
+	}
+
+	public void setIgnition(Boolean ignition) {
+		this.ignition = ignition;
+	}
 
 }

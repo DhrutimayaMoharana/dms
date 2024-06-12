@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,6 +32,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.watsoo.dms.constant.Constant;
+import com.watsoo.dms.constant.HttpApi;
 import com.watsoo.dms.dto.DeviceInformationDto;
 import com.watsoo.dms.dto.DriverPerformanceDto;
 import com.watsoo.dms.dto.EventDto;
@@ -55,6 +57,7 @@ import com.watsoo.dms.restclient.RestClientService;
 import com.watsoo.dms.security.JwtUserDetailsService;
 import com.watsoo.dms.service.CommandSendDetalisService;
 import com.watsoo.dms.service.EventService;
+import com.watsoo.dms.util.ConvertionUtility;
 import com.watsoo.dms.util.TimeUtility;
 import com.watsoo.dms.validation.Validation;
 
@@ -82,7 +85,7 @@ public class EventServiceImp implements EventService {
 	@Autowired
 	private VehicleRepository vehicleRepository;
 
-	@Value("${file.get.url}")
+	@Value("${file.dawnload.url}")
 	String fileUrl;
 
 	Map<Long, String> deviceInformationWithUser = new HashMap<>();
@@ -186,9 +189,8 @@ public class EventServiceImp implements EventService {
 			currentTime = userWithTime.get(user.getId());
 		}
 
-		if (isFirstCall
-				|| (!isFirstCall && (new Date(currentTime.getTime() + Integer.parseInt(timeConfiguration) * 60000)
-						.before(new Date())))) {
+		if (isFirstCall || (!isFirstCall
+				&& (new Date(currentTime.getTime() + Integer.parseInt(timeConfiguration) * 1000).before(new Date())))) {
 			Optional<Configuration> findByKey = configurationRepository.findByKey("DEVICE_INFORMATION_API_CALL_TIME");
 			if (findByKey.isPresent() && findByKey.get() != null) {
 				timeConfiguration = findByKey.get().getValue();
@@ -352,7 +354,7 @@ public class EventServiceImp implements EventService {
 		List<String> fullUrls = new ArrayList<>();
 
 		for (String url : urlArray) {
-			fullUrls.add(fileUrl + url);
+			fullUrls.add(fileUrl + HttpApi.GET_FILE + url);
 		}
 
 		return fullUrls;
@@ -453,6 +455,8 @@ public class EventServiceImp implements EventService {
 			int totalActiveVehicle = 0;
 			int totalInActiveVehicle = 0;
 
+			Set<Long> vechileList = new HashSet<>();
+
 			Map<String, Integer> vechileEventCountMap = new HashMap<>();
 			if (eventList != null && eventList.size() > 0) {
 				totalEventCount = eventList.size();
@@ -465,6 +469,8 @@ public class EventServiceImp implements EventService {
 						} else {
 							vechileEventCountMap.put(vehicleNo, vechileEventCountMap.get(vehicleNo) + 1);
 						}
+
+						vechileList.add(event.getVehicleID());
 
 						EventType eventType = event.getEventType();
 						if (eventType != null) {
@@ -494,6 +500,7 @@ public class EventServiceImp implements EventService {
 			eventTypeCountDto.setTotalActiveVehicle(totalActiveVehicle);
 			eventTypeCountDto.setTotalInActiveVehicle(totalInActiveVehicle);
 			eventTypeCountDto.setVehicleEventCountMap(vechileEventCountMap);
+			eventTypeCountDto.setTotalEventWiseVehiclet(vechileList.size());
 
 			return new Response<>("Events Counts fetched successfully", eventTypeCountDto, 200);
 		} catch (Exception e) {
@@ -512,15 +519,11 @@ public class EventServiceImp implements EventService {
 	}
 
 	@Override
-	public void saveEvent(String events, List<Vehicle> vehicles) {
-
-//		Map<Integer, Vehicle> vechileMapByDeviceId = vehicles.stream()
-//				.collect(Collectors.toMap(Vehicle::getDeviceId, Function.identity()));
+	public Event saveEvent(String events, List<Vehicle> vehicles) {
 
 		List<Vehicle> allVehicle = vehicleRepository.findAll();
 		Map<Integer, Vehicle> vechileMapByDeviceId = allVehicle.stream()
 				.collect(Collectors.toMap(Vehicle::getDeviceId, Function.identity()));
-
 
 		Gson gson = new Gson();
 		JsonArray eventList = gson.fromJson(events, JsonArray.class);
@@ -552,11 +555,10 @@ public class EventServiceImp implements EventService {
 						eventObject.setDeviceId(event.get("deviceId").getAsLong());
 						eventObject.setPositionId(positionId);
 						eventObject.setEventId(event.get("id").getAsLong());
-						
+
 						// Its update When Vechile Service call
 						// -->
-						
-						
+
 						eventObject.setChassisNumber(vehicle.getChassisNumber());
 						eventObject.setVehicleNo(vehicle.getVehicleNumber());
 						eventObject.setVehicleID(vehicle.getId());
@@ -598,10 +600,16 @@ public class EventServiceImp implements EventService {
 						if (positionData.has("attributes")) {
 							JsonObject positionAttributes = positionData.get("attributes").getAsJsonObject();
 							if (positionAttributes.has("evidenceFiles")) {
+
+								Double speed = ConvertionUtility
+										.convertKilonotsTokm(positionData.get("speed").getAsDouble());
+								boolean ignition = positionAttributes.get("ignition").getAsBoolean();
 								evidenceFiles = positionAttributes.get("evidenceFiles").getAsString();
 								Event event = eventsDataMap.get(positionId);
 								event.setLatitude(latitude);
 								event.setLongitude(longitude);
+								event.setSpeed(speed);
+								event.setIgnition(ignition);
 								event.setEvidencePhotos(evidenceFiles);
 								eventsDataMap.put(positionId, event);
 
@@ -622,6 +630,7 @@ public class EventServiceImp implements EventService {
 
 		}
 
+		Event event = new Event();
 		if (eventsDataMap != null && !eventsDataMap.isEmpty()) {
 
 			List<Event> values = new ArrayList<>(eventsDataMap.values());
@@ -635,12 +644,15 @@ public class EventServiceImp implements EventService {
 			List<Event> saveAll = eventRepository.saveAll(values);
 
 			if (saveAll != null && saveAll.size() > 0) {
+
+				event = values.get(values.size() - 1);
+
 				commandSendDetalisService.saveCommandDetalis(saveAll, deviceWithProtocolName);
 
 			}
 
 		}
-
+		return event;
 	}
 
 	@Override
@@ -680,7 +692,7 @@ public class EventServiceImp implements EventService {
 	}
 
 	@Override
-	public Response<?> getEventDetalisForDriverPerfomance(String value, String driverName) {
+	public Response<?> getEventDetalisForDriverPerfomance(String value, String dlNumber) {
 		String fromDate = "";
 		String toDate = "";
 		String addedFromTime = "00:00:00";
@@ -798,10 +810,10 @@ public class EventServiceImp implements EventService {
 			}
 
 			List<Event> findEventsBetweenDates = new ArrayList<>();
-			if (driverName == null || driverName.isEmpty()) {
+			if (dlNumber == null || dlNumber.isEmpty()) {
 				findEventsBetweenDates = eventRepository.findEventsBetweenDates(fromDate, toDate);
 			} else {
-				findEventsBetweenDates = eventRepository.findEventsBetweenDatesAndDriver(fromDate, toDate, driverName);
+				findEventsBetweenDates = eventRepository.findEventsBetweenDatesAndDriver(fromDate, toDate, dlNumber);
 			}
 
 			Map<String, Integer> twoDateBetweenEvent = getDataBetweenTwoDates(findEventsBetweenDates,
@@ -811,15 +823,15 @@ public class EventServiceImp implements EventService {
 
 			List<DriverPerformanceDto> driverPerformanceDto = new ArrayList<>();
 
-			for (String dlNumber : categorizeEventsByDlNo.keySet()) {
+			for (String driver : categorizeEventsByDlNo.keySet()) {
 
 				DriverPerformanceDto obj = new DriverPerformanceDto();
 
-				List<Event> list = categorizeEventsByDlNo.get(dlNumber);
+				List<Event> list = categorizeEventsByDlNo.get(driver);
 				Map<String, Integer> countEventsByMonth = countEventsByRange(list, twoDateBetweenEvent,
 						fromPriviosStartDateTime, toPriviosEndDateTime, fromCurrentStartDateTime, toCurrentEndDateTime);
 
-				obj.setDriverName(list.get(0).getDriverName() + " (" + dlNumber + ")");
+				obj.setDriverName(list.get(0).getDriverName() + " (" + driver + ")");
 				for (Map.Entry<String, Integer> rangeCountByDriver : countEventsByMonth.entrySet()) {
 					String key = rangeCountByDriver.getKey();
 

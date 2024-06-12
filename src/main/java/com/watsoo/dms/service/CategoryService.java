@@ -1,5 +1,10 @@
 package com.watsoo.dms.service;
 
-public class CategoryService {
+import com.watsoo.dms.dto.Response;
+
+public interface CategoryService {
+
+	public Response<?> getAllCategory();
+		
 
 }

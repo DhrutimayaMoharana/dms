@@ -16,6 +16,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.watsoo.dms.entity.CommandSendDetails;
 import com.watsoo.dms.entity.FileUploadDetails;
+import com.watsoo.dms.enums.CommandStatus;
 import com.watsoo.dms.repository.CommandSendDetalisRepository;
 import com.watsoo.dms.repository.FileUploadDetailsRepository;
 import com.watsoo.dms.restclient.RestClientService;
@@ -66,12 +67,14 @@ public class FileUploadDetailsServiceImp implements FileUploadDetailsService {
 	}
 
 	@Override
-	public void updateFlleDetalis() {
+	public void updateFlleDetalis(int reCallCount) {
 
 		try {
 
 			List<FileUploadDetails> findByIsFileExistIsNullOrIsFileExistFalse = fileUploadDetailsRepository
-					.findByIsFileExistIsNullOrIsFileExistFalse();
+					.findByStatusIsNullOrStatusIsPartiallySuccess();
+//					
+//					.findByIsFileExistIsNullOrIsFileExistFalse();
 
 			if (findByIsFileExistIsNullOrIsFileExistFalse != null
 					&& findByIsFileExistIsNullOrIsFileExistFalse.size() > 0) {
@@ -86,41 +89,61 @@ public class FileUploadDetailsServiceImp implements FileUploadDetailsService {
 						.collect(Collectors.toMap(CommandSendDetails::getId, detail -> detail));
 
 				for (FileUploadDetails fileDetails : findByIsFileExistIsNullOrIsFileExistFalse) {
-					
-					if(fileDetails.getId().equals("252")) {
-						System.out.println("inside ");
-					}
 
 					boolean isFileExit = false;
-					String filePresentOrNot = restClientService.getFilePresentOrNot(fileDetails.getFileName());
-					if(filePresentOrNot!=null) {
-					Gson gson = new Gson();
-					JsonObject resposnse = gson.fromJson(filePresentOrNot, JsonObject.class);
-					if (resposnse != null && resposnse.has("code")) {
-						String responseCode = resposnse.get("code").getAsString();
-						if (responseCode.equals("200")) {
-							if (resposnse.has("data")) {
 
-								JsonObject data = resposnse.get("data").getAsJsonObject();
-								if (data.has("fileSize")) {
-									fileDetails.setFileSize(data.get("fileSize").getAsDouble());
+					if (fileDetails.getReCallCount() == null
+							|| fileDetails.getReCallCount().intValue() <= reCallCount) {
+
+						String filePresentOrNot = restClientService.getFilePresentOrNot(fileDetails.getFileName());
+						if (filePresentOrNot != null) {
+							Gson gson = new Gson();
+							JsonObject resposnse = gson.fromJson(filePresentOrNot, JsonObject.class);
+							if (resposnse != null && resposnse.has("code")) {
+								String responseCode = resposnse.get("code").getAsString();
+								if (responseCode.equals("200")) {
+									if (resposnse.has("data")) {
+
+										fileDetails.setReCallCount(fileDetails.getReCallCount() != null
+												? (fileDetails.getReCallCount() + 1)
+												: 0 + 1);
+
+										JsonObject data = resposnse.get("data").getAsJsonObject();
+										if (data.has("fileSize")) {
+											fileDetails.setFileSize(data.get("fileSize").getAsDouble());
+
+										}
+									}
+
+									CommandSendDetails commandSendDetails = commandDetalisMapWIthId
+											.get(fileDetails.getCommandSendId());
+									commandSendDetails
+											.setNoOfFileUploaded(commandSendDetails.getNoOfFileUploaded() != null
+													? (commandSendDetails.getNoOfFileUploaded() + 1)
+													: 0 + 1);
+									commandSendDetails.setUpdatedOn(LocalDateTime.now());
+									commandDetalisMapWIthId.put(fileDetails.getCommandSendId(), commandSendDetails);
+
+									if (commandSendDetails.getNoOfFileUploaded().intValue() == commandSendDetails
+											.getNoOfFileReq().intValue()) {
+
+										commandSendDetails.setStatus(CommandStatus.COMPLETE_SUCCESS);
+									} else {
+										commandSendDetails.setStatus(CommandStatus.PARTIALY_SUCCESS);
+									}
+
+									fileDetails.setStatus(CommandStatus.COMPLETE_SUCCESS.name());
+
+									isFileExit = true;
 								}
 							}
-
-							CommandSendDetails commandSendDetails = commandDetalisMapWIthId
-									.get(fileDetails.getCommandSendId());
-							commandSendDetails.setNoOfFileUploaded(commandSendDetails.getNoOfFileUploaded() != null
-									? (commandSendDetails.getNoOfFileUploaded() + 1)
-									: 0 + 1);
-							commandSendDetails.setUpdatedOn(LocalDateTime.now());
-							commandDetalisMapWIthId.put(fileDetails.getCommandSendId(), commandSendDetails);
-
-							isFileExit = true;
 						}
+					} else {
+						fileDetails.setStatus(CommandStatus.FAILED.name());
 					}
+
 					fileDetails.setIsFileExist(isFileExit);
 					fileDetails.setUpdatedOn(new Date());
-					}
 
 				}
 				fileUploadDetailsRepository.saveAll(findByIsFileExistIsNullOrIsFileExistFalse);
@@ -130,7 +153,9 @@ public class FileUploadDetailsServiceImp implements FileUploadDetailsService {
 				}
 			}
 
-		} catch (Exception e) {
+		} catch (
+
+		Exception e) {
 			e.printStackTrace();
 		}
 

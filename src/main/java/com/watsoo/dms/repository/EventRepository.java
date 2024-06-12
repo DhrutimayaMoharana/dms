@@ -24,11 +24,12 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	@Query(value = "SELECT * FROM event e WHERE DATE(e.event_server_create_time) BETWEEN :startDate AND :endDate", nativeQuery = true)
 	List<Event> findEventsBetweenDates(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
-	@Query(value = "SELECT COUNT(id) FROM event e WHERE e.event_type <> :excludedEventType",nativeQuery = true)
+	@Query(value = "SELECT COUNT(id) FROM event e WHERE e.event_type <> :excludedEventType", nativeQuery = true)
 	long countEventsExcludingType(@Param("excludedEventType") String excludedEventType);
 
-	    @Query(value = "SELECT * FROM event e WHERE DATE(e.event_server_create_time) BETWEEN :startDate AND :endDate AND e.driver_name = :driverName", nativeQuery = true)
-	    List<Event> findEventsBetweenDatesAndDriver(@Param("startDate") String startDate, @Param("endDate") String endDate, @Param("driverName") String driverName);
+	@Query(value = "SELECT * FROM event e WHERE DATE(e.event_server_create_time) BETWEEN :startDate AND :endDate AND e.dl_number = :dlNumber", nativeQuery = true)
+	List<Event> findEventsBetweenDatesAndDriver(@Param("startDate") String startDate, @Param("endDate") String endDate,
+			@Param("dlNumber") String dlNumber);
 
 	public static Specification<Event> search(PaginatedRequestDto paginatedRequest) {
 		return (root, cq, cb) -> {
@@ -64,13 +65,16 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 				predicate = cb.and(predicate, cb.equal(root.get("remarkId"), paginatedRequest.getRemarkId()));
 			}
 
-			if (paginatedRequest.getDriverName() != null) {
+			if (paginatedRequest.getDriverName() != null && paginatedRequest.getDriverName().trim() != null) {
 				predicate = cb.and(predicate, cb.equal(root.get("driverName"), paginatedRequest.getDriverName()));
 			}
 			if (paginatedRequest.getVehicleNo() != null) {
 				predicate = cb.and(predicate, cb.equal(root.get("vehicleNo"), paginatedRequest.getVehicleNo()));
 			}
 			if (paginatedRequest.getEventType() != null
+
+					&& !paginatedRequest.getEventType().trim().equals("")
+
 					&& !paginatedRequest.getEventType().equals(EventType.ALL.name())) {
 				try {
 					EventType eventType = EventType.valueOf(paginatedRequest.getEventType());
