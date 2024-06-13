@@ -18,7 +18,7 @@ import com.watsoo.dms.entity.Driver;
 import com.watsoo.dms.entity.Event;
 import com.watsoo.dms.enums.EventType;
 
-import jakarta.persistence.criteria.Predicate;
+import javax.persistence.criteria.Predicate;
 
 public interface DriverRepository extends JpaRepository<Driver, Long> {
 	List<Driver> findByIsActiveTrue();

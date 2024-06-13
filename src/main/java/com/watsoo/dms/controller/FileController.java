@@ -15,14 +15,12 @@ import org.springframework.web.multipart.MultipartFile;
 import com.watsoo.dms.dto.Response;
 import com.watsoo.dms.service.FileService;
 
-
 @RestController
 public class FileController {
-	
+
 	@Autowired
 	private FileService fileService;
-	
-	
+
 	@PostMapping("/v1/uploadFile")
 	public ResponseEntity<?> uploadFileInLocalAndResponseAsDownloadUrl(@ModelAttribute MultipartFile file)
 			throws Exception {
@@ -33,11 +31,12 @@ public class FileController {
 		return new ResponseEntity<>(respone, HttpStatus.valueOf(respone.getResponseCode()));
 
 	}
-	
+
 	@GetMapping("/getFile/{filename}")
 	public ResponseEntity<?> getFile(@PathVariable("filename") String filename) {
 
-		Resource resource = fileService.downloadDocument(filename);
+		Response<?> downloadDocument = fileService.downloadDocument(filename);
+		Resource resource = (Resource) downloadDocument.getData();
 
 		return ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")

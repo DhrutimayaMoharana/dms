@@ -50,7 +50,7 @@ public class FileServiceImpl implements FileService {
 	}
 
 	@Override
-	public Resource downloadDocument(String fileName) {
+	public Response<?> downloadDocument(String fileName) {
 
 		try {
 
@@ -60,7 +60,7 @@ public class FileServiceImpl implements FileService {
             Resource resource = new ByteArrayResource(byteArray);
             
 			if (resource.exists() || resource.isReadable()) {
-				return resource;
+				return new Response<>("Image featch ",resource,200);
 			} else {
 				throw new RuntimeException("Could not find file");
 			}

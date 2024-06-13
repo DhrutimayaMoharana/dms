@@ -100,7 +100,7 @@ public class CommandServiceImpl implements CommandService {
 				
 				String[] split = beforeHash.split("<", 2);
 				beforeHash=split[0].trim();
-				System.out.println(split);
+//				System.out.println(split);
 			}
 			
 			if (beforeHash.contains(",")) {

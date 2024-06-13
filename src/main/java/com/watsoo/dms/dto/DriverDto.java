@@ -4,8 +4,6 @@ import java.util.Date;
 
 import com.watsoo.dms.entity.Driver;
 
-import jakarta.persistence.Column;
-
 public class DriverDto {
 
 	private Long id;

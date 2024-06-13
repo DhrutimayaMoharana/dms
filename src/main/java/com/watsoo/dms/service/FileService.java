@@ -9,6 +9,6 @@ public interface FileService {
 
 	Response<?> storeFileInLocalDirectoryResponseIsDownloadUrl(MultipartFile file, Long currentDate);
 
-	Resource downloadDocument(String fileName);
+	Response<?> downloadDocument(String fileName);
 
 }

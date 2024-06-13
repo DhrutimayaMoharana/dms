@@ -81,8 +81,7 @@ public class ProcessEvent {
 				LocalDateTime now = LocalDateTime.now();
 				toTime = now.format(DATE_TIME_FORMATTER);
 
-				long between = ChronoUnit.SECONDS.between(LocalDateTime.parse(fromTime, DATE_TIME_FORMATTER), now);
-
+				
 				if (fromTime != null && ChronoUnit.SECONDS.between(LocalDateTime.parse(fromTime, DATE_TIME_FORMATTER),
 						now) >= schedulerTime) {
 
@@ -146,9 +145,8 @@ public class ProcessEvent {
 	@Scheduled(cron="*/2 * * * * *")
 	public void processCommandSend() {
 
-//		if (lock.tryLock()) {
+		if (lock.tryLock()) {
 			try {
-
 				int reCallCount = 0;
 				Integer processCommand = 0;
 				int processSleepTime = 0;
@@ -171,15 +169,17 @@ public class ProcessEvent {
 
 					commandSendDetalisService.sendCommand(reCallCount, processSleepTime);
 					fileUploadDetailsService.updateFlleDetalis(reCallCount);
+					
 				}
 
-//				scheduleNextRun(processCommand * 1000L);
-//			} finally {
-//				lock.unlock();
-//			}
-		}catch (Exception e) {
-			
+			} 
+			finally {
+				lock.unlock();
+			}
 		}
+//		catch (Exception e) {
+//			
+//		}
 	}
 
 //	private void scheduleNextRun(long delay) {

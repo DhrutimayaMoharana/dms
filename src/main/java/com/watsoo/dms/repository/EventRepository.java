@@ -17,7 +17,7 @@ import com.watsoo.dms.dto.PaginatedRequestDto;
 import com.watsoo.dms.entity.Event;
 import com.watsoo.dms.enums.EventType;
 
-import jakarta.persistence.criteria.Predicate;
+import javax.persistence.criteria.Predicate;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
 
@@ -43,7 +43,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 		return (root, cq, cb) -> {
 			Predicate predicate = cb.conjunction();
 
-			predicate = cb.and(predicate, cb.notEqual(root.get("eventType"), "POWER_CUT"));
+			predicate = cb.and(predicate, cb.notEqual(root.get("eventType"), EventType.valueOf("POWER_CUT")));
 
 			if (paginatedRequest.getFromDate() != null && paginatedRequest.getToDate() != null) {
 				DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
@@ -98,7 +98,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
 				predicate = cb.and(predicate, searchPredicate);
 			}
-			
+
 			cq.orderBy(cb.desc(root.get("eventServerCreateTime")));
 
 			return predicate;

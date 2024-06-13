@@ -13,7 +13,7 @@ import org.springframework.data.repository.query.Param;
 import com.watsoo.dms.dto.PaginatedRequestDto;
 import com.watsoo.dms.entity.CommandSendDetails;
 
-import jakarta.persistence.criteria.Predicate;
+import javax.persistence.criteria.Predicate;
 
 public interface CommandSendDetalisRepository extends JpaRepository<CommandSendDetails, Long> {
 

@@ -219,13 +219,11 @@ public class RestClientService {
 
 			if (response != null) {
 
-				System.out.println("Inside Rest Calling  ");
+//				System.out.println("Inside Rest Calling  ");
 
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println("Some issue for Sending Sms");
 		}
 
 	}

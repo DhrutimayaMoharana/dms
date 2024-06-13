@@ -90,8 +90,7 @@ public class EventServiceImp implements EventService {
 	Map<Long, String> deviceInformationWithUser = new HashMap<>();
 	Map<Long, Date> userWithTime = new HashMap<>();
 	String timeConfiguration = "10";
-	
-	
+
 	@Override
 	public Event saveEvent(String events, List<Vehicle> vehicles) {
 
@@ -197,7 +196,7 @@ public class EventServiceImp implements EventService {
 							powerCutEvent.add(event);
 						} else {
 							ListOfevent.add(event);
-							
+
 						}
 					}
 
@@ -210,47 +209,46 @@ public class EventServiceImp implements EventService {
 		Event event = new Event();
 //			List<Event> ListOfevent = new ArrayList<>(eventsDataMap.values());
 
-			if (powerCutEvent != null && powerCutEvent.size() > 0) {
+		if (powerCutEvent != null && powerCutEvent.size() > 0) {
 
-				Collections.sort(powerCutEvent, new Comparator<Event>() {
-					@Override
-					public int compare(Event e1, Event e2) {
-						return e1.getEventServerCreateTime().compareTo(e2.getEventServerCreateTime());
-					}
-				});
-
-				event = powerCutEvent.get(powerCutEvent.size() - 1);
-
-				Event powerCutEventByPositionId = eventRepository
-						.findEventsByPositionIdAndEventType(event.getPositionId(), event.getEventType().name());
-
-				if (powerCutEventByPositionId != null) {
-					event = powerCutEventByPositionId;
+			Collections.sort(powerCutEvent, new Comparator<Event>() {
+				@Override
+				public int compare(Event e1, Event e2) {
+					return e1.getEventServerCreateTime().compareTo(e2.getEventServerCreateTime());
 				}
+			});
 
-				ListOfevent.add(event);
+			event = powerCutEvent.get(powerCutEvent.size() - 1);
 
+			Event powerCutEventByPositionId = eventRepository.findEventsByPositionIdAndEventType(event.getPositionId(),
+					event.getEventType().name());
+
+			if (powerCutEventByPositionId != null) {
+				event = powerCutEventByPositionId;
 			}
 
-			if (ListOfevent != null && ListOfevent.size() > 0) {
+			ListOfevent.add(event);
 
-				Collections.sort(ListOfevent, new Comparator<Event>() {
-					@Override
-					public int compare(Event e1, Event e2) {
-						return e1.getEventServerCreateTime().compareTo(e2.getEventServerCreateTime());
-					}
-				});
+		}
 
-				List<Event> saveAll = eventRepository.saveAll(ListOfevent);
-				event = ListOfevent.get(ListOfevent.size() - 1);
-				
-				if(ListOfevent.size()!=powerCutEvent.size()) {
+		if (ListOfevent != null && ListOfevent.size() > 0) {
+
+			Collections.sort(ListOfevent, new Comparator<Event>() {
+				@Override
+				public int compare(Event e1, Event e2) {
+					return e1.getEventServerCreateTime().compareTo(e2.getEventServerCreateTime());
+				}
+			});
+
+			List<Event> saveAll = eventRepository.saveAll(ListOfevent);
+			event = ListOfevent.get(ListOfevent.size() - 1);
+
+			if (ListOfevent.size() != powerCutEvent.size()) {
 				commandSendDetalisService.saveCommandDetalis(saveAll, deviceWithProtocolName);
-				}
-
 			}
 
-		
+		}
+
 		return event;
 	}
 
@@ -421,17 +419,24 @@ public class EventServiceImp implements EventService {
 
 			EventType eventType = event.getEventType();
 			if (eventType != null) {
-				switch (eventType) {
-				case YAWN_ALERT -> yawningCount++;
-				case PHONE_CALLING -> mobileUsageCount++;
-				case DISTRACTION -> distractionCount++;
-				case SMOKING_ALERT -> smokingCount++;
-				case CLOSE_EYES -> closeEyesCount++;
-				case NO_FACE -> noFaceCount++;
-				case LOW_HEAD -> lowHeadCount++;
-				case DRINKING -> drinkingCount++;
-				default -> {
-				}
+				if (eventType == EventType.YAWN_ALERT) {
+					yawningCount++;
+				} else if (eventType == EventType.PHONE_CALLING) {
+					mobileUsageCount++;
+				} else if (eventType == EventType.DISTRACTION) {
+					distractionCount++;
+				} else if (eventType == EventType.SMOKING_ALERT) {
+					smokingCount++;
+				} else if (eventType == EventType.CLOSE_EYES) {
+					closeEyesCount++;
+				} else if (eventType == EventType.NO_FACE) {
+					noFaceCount++;
+				} else if (eventType == EventType.LOW_HEAD) {
+					lowHeadCount++;
+				} else if (eventType == EventType.DRINKING) {
+					drinkingCount++;
+				} else {
+					// handle default case (if needed)
 				}
 
 			}
@@ -586,8 +591,7 @@ public class EventServiceImp implements EventService {
 					String formattedEndDate = dateFormat.format(endDate);
 					fromDate = formattedStartDate + " " + addedFromTime;
 					toDate = formattedEndDate + " " + addedToTime;
-					System.out.println(fromDate);
-					System.out.println(toDate);
+
 				} else if (value.equals(Constant.LAST_MONTH)) {
 					Calendar calendar = Calendar.getInstance();
 					calendar.set(Calendar.DAY_OF_MONTH, 1);
@@ -636,7 +640,7 @@ public class EventServiceImp implements EventService {
 //					.collect(Collectors.toSet());
 
 //			String deviceInformation = getDeviceInformtaion(collectDeviceId);
-			
+
 //			String deviceInformation="";
 //			Map<Long, DeviceInformationDto> retrieveDeviceInfoMap = new HashMap<>();
 //			if (deviceInformation != null && !deviceInformation.equals("")) {
@@ -655,7 +659,7 @@ public class EventServiceImp implements EventService {
 //			}
 
 			Set<Long> vechileList = new HashSet<>();
-			
+
 			Map<String, Integer> vechileEventCountMap = new HashMap<>();
 			if (eventList != null && eventList.size() > 0) {
 				totalEventCount = eventList.size();
@@ -673,21 +677,26 @@ public class EventServiceImp implements EventService {
 
 						EventType eventType = event.getEventType();
 						if (eventType != null) {
-
-							switch (eventType) {
-							case YAWN_ALERT -> yawningCount++;
-							case PHONE_CALLING -> mobileUsageCount++;
-							case DISTRACTION -> distractionCount++;
-							case SMOKING_ALERT -> smokingCount++;
-							case CLOSE_EYES -> closeEyesCount++;
-							case NO_FACE -> noFaceCount++;
-							case LOW_HEAD -> lowHeadCount++;
-							case DRINKING -> drinkingCount++;
-
-//						deviceEventCountMap.put(deviceId, deviceEventCountMap.get(deviceId) + 1);
-							default -> {
+							if (eventType.equals(EventType.YAWN_ALERT)) {
+								yawningCount++;
+							} else if (eventType.equals(EventType.PHONE_CALLING)) {
+								mobileUsageCount++;
+							} else if (eventType.equals(EventType.DISTRACTION)) {
+								distractionCount++;
+							} else if (eventType.equals(EventType.SMOKING_ALERT)) {
+								smokingCount++;
+							} else if (eventType.equals(EventType.CLOSE_EYES)) {
+								closeEyesCount++;
+							} else if (eventType.equals(EventType.NO_FACE)) {
+								noFaceCount++;
+							} else if (eventType.equals(EventType.LOW_HEAD)) {
+								lowHeadCount++;
+							} else if (eventType.equals(EventType.DRINKING)) {
+								drinkingCount++;
+							} else {
+								// handle default case (if needed)
 							}
-							}
+
 						}
 					}
 				}
@@ -717,8 +726,6 @@ public class EventServiceImp implements EventService {
 				.collect(Collectors.toList());
 		return new Response<>("All event types fetched successfully", eventTypeList, 200);
 	}
-
-	
 
 	@Override
 	public Response<?> updateEvent(EventDto eventDto) {

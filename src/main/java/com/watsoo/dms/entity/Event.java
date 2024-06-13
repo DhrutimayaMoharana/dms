@@ -2,7 +2,7 @@ package com.watsoo.dms.entity;
 
 import java.util.Date;
 import com.watsoo.dms.enums.EventType;
-import jakarta.persistence.*;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "event")

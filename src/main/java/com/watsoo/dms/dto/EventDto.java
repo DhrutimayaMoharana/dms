@@ -5,8 +5,6 @@ import java.util.List;
 
 import com.watsoo.dms.entity.Event;
 
-import jakarta.persistence.Column;
-
 public class EventDto {
 	private Long id;
 	private Long vehicleId;
