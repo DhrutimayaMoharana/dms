@@ -250,6 +250,8 @@ public class CommandSendDetalisServiceImp implements CommandSendDetalisService {
 
 					if (commandSendDetails.getNoOfFileUploaded() == null
 							|| commandSendDetails.getNoOfFileUploaded() > 0) {
+						
+						
 						restClientService.sendHttpPostRequestForCommand(commandSendDetails);
 
 					}

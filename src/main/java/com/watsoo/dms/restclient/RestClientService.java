@@ -7,13 +7,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -22,6 +23,8 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.watsoo.dms.constant.HttpApi;
 import com.watsoo.dms.entity.CommandSendDetails;
+import com.watsoo.dms.entity.Configuration;
+import com.watsoo.dms.repository.ConfigurationRepository;
 
 @Component
 public class RestClientService {
@@ -39,6 +42,9 @@ public class RestClientService {
 
 	@Value("${file.dawnload.url}")
 	String fileUrl;
+
+	@Autowired
+	private ConfigurationRepository configurationRepository;
 
 	public String fetchEventDataFromExternalService(List<Integer> deviceId, String type, String fromTime,
 			String toTime) {
@@ -157,7 +163,15 @@ public class RestClientService {
 
 	public String getFilePresentOrNot(String fileName) {
 
+		
+
 		try {
+			
+			Optional<Configuration> fileAccessUrl = configurationRepository.findByKey("FILE_ACCESS_BASE_URL");
+			if (fileAccessUrl.isPresent() && fileAccessUrl.get() != null) {
+				fileUrl = fileAccessUrl.get().getValue();
+			}
+			
 			ResponseEntity<String> responseEntity = null;
 //			String positionsEndpoint = "/check?file=";
 			String url = fileUrl + HttpApi.CHECK_FILE_END_POINT + fileName;
@@ -257,9 +271,8 @@ public class RestClientService {
 			ResponseEntity<String> responseEntity = null;
 			if (deviceId != null) {
 				url += deviceId;
-			}
-			else {
-				url+=6;
+			} else {
+				url += 6;
 			}
 
 			url = url + "&from=" + from + "&to=" + to;
@@ -279,6 +292,36 @@ public class RestClientService {
 				ObjectMapper objectMapper = new ObjectMapper();
 
 				return objectMapper.readValue(responseEntity.getBody(), Object.class);
+			}
+		} catch (Exception e) {
+			return null;
+		}
+
+	}
+
+	public String getFile(String fileName) {
+
+		try {
+
+			Optional<Configuration> fileAccessUrl = configurationRepository.findByKey("FILE_ACCESS_BASE_URL");
+			if (fileAccessUrl.isPresent() && fileAccessUrl.get() != null) {
+				fileUrl = fileAccessUrl.get().getValue();
+			}
+			ResponseEntity<String> responseEntity = null;
+//			String positionsEndpoint = "/check?file=";
+			String url = fileUrl + HttpApi.GET_FILE + fileName;
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.setBasicAuth(username, password);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			headers.set("cache-control", "no-cache");
+
+			HttpEntity<String> entity = new HttpEntity<>(headers);
+			responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+				return null;
+			} else {
+				return responseEntity.getBody();
 			}
 		} catch (Exception e) {
 			return null;

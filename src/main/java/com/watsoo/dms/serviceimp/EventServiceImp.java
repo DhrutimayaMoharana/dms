@@ -85,12 +85,174 @@ public class EventServiceImp implements EventService {
 	@Autowired
 	private VehicleRepository vehicleRepository;
 
-	@Value("${file.dawnload.url}")
 	String fileUrl;
 
 	Map<Long, String> deviceInformationWithUser = new HashMap<>();
 	Map<Long, Date> userWithTime = new HashMap<>();
 	String timeConfiguration = "10";
+	
+	
+	@Override
+	public Event saveEvent(String events, List<Vehicle> vehicles) {
+
+		List<Vehicle> allVehicle = vehicleRepository.findAll();
+		Map<Integer, Vehicle> vechileMapByDeviceId = allVehicle.stream()
+				.collect(Collectors.toMap(Vehicle::getDeviceId, Function.identity()));
+
+		Gson gson = new Gson();
+		JsonArray eventList = gson.fromJson(events, JsonArray.class);
+
+		Map<Long, Event> eventsDataMap = new HashMap<>();
+		List<Long> positionIdList = new ArrayList<>();
+
+		Remark findByStatus = remarkRepository.findByStatus("PENDING");
+
+		for (JsonElement eventElement : eventList) {
+			JsonObject event = eventElement.getAsJsonObject();
+
+			if (event.has("attributes")) {
+				JsonObject eventAttributes = event.get("attributes").getAsJsonObject();
+				if (eventAttributes.has("alarm")) {
+					String eventAlarm = eventAttributes.get("alarm").getAsString();
+
+					EventType eventType = EventType.fromType(eventAlarm);
+					if (eventType != null) {
+						Event eventObject = new Event();
+						eventObject.setEventType(eventType);
+						eventObject.setEventTime(new Date());
+
+						eventObject.setEventServerCreateTime(
+								TimeUtility.getTimeStringToDateFormat(event.get("eventTime").getAsString()));
+						Long deviceId = event.get("deviceId").getAsLong();
+						Vehicle vehicle = vechileMapByDeviceId.get(deviceId.intValue());
+						Long positionId = event.get("positionId").getAsLong();
+						eventObject.setDeviceId(event.get("deviceId").getAsLong());
+						eventObject.setPositionId(positionId);
+						eventObject.setEventId(event.get("id").getAsLong());
+
+						// Its update When Vechile Service call
+						// -->
+
+						eventObject.setChassisNumber(vehicle.getChassisNumber());
+						eventObject.setVehicleNo(vehicle.getVehicleNumber());
+						eventObject.setVehicleID(vehicle.getId());
+						eventObject.setImeiNo(vehicle.getImeiNo());
+						eventObject.setRemark(findByStatus.getStatus());
+						eventObject.setRemarkId(findByStatus.getId());
+
+						Driver driver = vehicle.getDriver();
+						eventObject.setDriverName(driver.getName());
+						eventObject.setDriverPhone(driver.getPhoneNumber());
+						eventObject.setDlNo(driver.getDlNumber());
+						eventObject.setDriverId(driver.getId());
+						// <--
+						positionIdList.add(positionId);
+						eventsDataMap.put(positionId, eventObject);
+					}
+
+				}
+
+			}
+
+		}
+
+		List<Event> powerCutEvent = new ArrayList<>();
+		List<Event> ListOfevent = new ArrayList<>();
+
+		Map<Long, String> deviceWithProtocolName = new HashMap<>();
+		String positions = "";
+		if (positionIdList != null && positionIdList.size() > 0) {
+			positions = restClientService.getPositions(positionIdList);
+			if (positions != null) {
+				JsonArray positionObject = gson.fromJson(positions, JsonArray.class);
+				for (JsonElement positionElement : positionObject) {
+					JsonObject positionData = positionElement.getAsJsonObject();
+					String evidenceFiles = "";
+					if (positionData.has("id")) {
+
+						Long positionId = positionData.get("id").getAsLong();
+						Double latitude = positionData.get("latitude").getAsDouble();
+						Double longitude = positionData.get("longitude").getAsDouble();
+
+						Double speed = ConvertionUtility.convertKilonotsTokm(positionData.get("speed").getAsDouble());
+
+						Event event = eventsDataMap.get(positionId);
+						event.setLatitude(latitude);
+						event.setLongitude(longitude);
+						event.setSpeed(speed);
+
+						if (positionData.has("attributes")) {
+							JsonObject positionAttributes = positionData.get("attributes").getAsJsonObject();
+							if (positionAttributes.has("evidenceFiles")) {
+								evidenceFiles = positionAttributes.get("evidenceFiles").getAsString();
+								event.setEvidencePhotos(evidenceFiles);
+
+							}
+							boolean ignition = positionAttributes.get("ignition").getAsBoolean();
+							event.setIgnition(ignition);
+
+						}
+
+						if (event.getEventType().equals(EventType.POWER_CUT)) {
+							powerCutEvent.add(event);
+						} else {
+							ListOfevent.add(event);
+							
+						}
+					}
+
+				}
+
+			}
+
+		}
+
+		Event event = new Event();
+//			List<Event> ListOfevent = new ArrayList<>(eventsDataMap.values());
+
+			if (powerCutEvent != null && powerCutEvent.size() > 0) {
+
+				Collections.sort(powerCutEvent, new Comparator<Event>() {
+					@Override
+					public int compare(Event e1, Event e2) {
+						return e1.getEventServerCreateTime().compareTo(e2.getEventServerCreateTime());
+					}
+				});
+
+				event = powerCutEvent.get(powerCutEvent.size() - 1);
+
+				Event powerCutEventByPositionId = eventRepository
+						.findEventsByPositionIdAndEventType(event.getPositionId(), event.getEventType().name());
+
+				if (powerCutEventByPositionId != null) {
+					event = powerCutEventByPositionId;
+				}
+
+				ListOfevent.add(event);
+
+			}
+
+			if (ListOfevent != null && ListOfevent.size() > 0) {
+
+				Collections.sort(ListOfevent, new Comparator<Event>() {
+					@Override
+					public int compare(Event e1, Event e2) {
+						return e1.getEventServerCreateTime().compareTo(e2.getEventServerCreateTime());
+					}
+				});
+
+				List<Event> saveAll = eventRepository.saveAll(ListOfevent);
+				event = ListOfevent.get(ListOfevent.size() - 1);
+				
+				if(ListOfevent.size()!=powerCutEvent.size()) {
+				commandSendDetalisService.saveCommandDetalis(saveAll, deviceWithProtocolName);
+				}
+
+			}
+
+		
+		return event;
+	}
 
 	@Override
 	public Response<?> getAllEvent(int pageSize, int pageNo, String vehicleNo, String driverName, String eventType,
@@ -103,13 +265,17 @@ public class EventServiceImp implements EventService {
 			Page<Event> findAllEvent = eventRepository.findAll(paginatedRequest, pageable);
 			List<Event> events = findAllEvent.getContent();
 
-			Set<Long> allDeviceID = events.stream().map(event -> event.getDeviceId()).collect(Collectors.toSet());
+			List<Vehicle> allVehicle = vehicleRepository.findAll();
+			Set<Long> collectDeviceId = allVehicle.stream().map(vehicle -> vehicle.getDeviceId().longValue())
+					.collect(Collectors.toSet());
 //
-			String deviceInformation = getDeviceInformtaion(allDeviceID);
+			String deviceInformation = getDeviceInformtaion(collectDeviceId);
+//			String deviceInformation="";
 			Integer pendingRemark = 0;
 			Integer actionTakenRemark = 0;
 			int totalActiveVehicle = 0;
 			int totalInActiveVehicle = 0;
+			int noActionTakenRemark = 0;
 
 			Map<Long, DeviceInformationDto> retrieveDeviceInfoMap = new HashMap<>();
 			if (deviceInformation != null && !deviceInformation.equals("")) {
@@ -129,7 +295,8 @@ public class EventServiceImp implements EventService {
 
 			// all events for Dashboard
 			List<Event> allEvents = eventRepository.findAll();
-			EventTypeCountDto eventsAllDetalisForDashBoard = getEventsAllDetalisForDashBoard(allEvents, allDeviceID);
+			EventTypeCountDto eventsAllDetalisForDashBoard = getEventsAllDetalisForDashBoard(allEvents,
+					collectDeviceId);
 			eventsAllDetalisForDashBoard.setTotalInActiveVehicle(totalInActiveVehicle);
 			eventsAllDetalisForDashBoard.setTotalActiveVehicle(totalActiveVehicle);
 
@@ -148,10 +315,13 @@ public class EventServiceImp implements EventService {
 
 				if (!event.getEventType().equals(EventType.POWER_CUT)) {
 
-					if (event.getRemark().equals("PENDING")) {
+					if (event.getRemarkId() == 1) {
 						pendingRemark++;
-					} else {
+					} else if (event.getRemarkId() == 2) {
 						actionTakenRemark++;
+					} else {
+						noActionTakenRemark++;
+
 					}
 					eventsdto.add(fromEventToEventDto);
 				}
@@ -159,6 +329,7 @@ public class EventServiceImp implements EventService {
 
 			eventsAllDetalisForDashBoard.setPendingRemark(pendingRemark);
 			eventsAllDetalisForDashBoard.setActionTakenRemark(actionTakenRemark);
+			eventsAllDetalisForDashBoard.setNoActionTakenRemark(noActionTakenRemark);
 			PaginatedResponseDto<Object> paginatedResponseDto = new PaginatedResponseDto<>(
 					eventRepository.countEventsExcludingType("POWER_CUT"), eventsdto.size(),
 					findAllEvent.getTotalPages(), pageNo, eventsdto, eventsAllDetalisForDashBoard);
@@ -209,10 +380,10 @@ public class EventServiceImp implements EventService {
 
 	private EventTypeCountDto getEventsAllDetalisForDashBoard(List<Event> allEvents, Set<Long> allDeviceID) {
 
-		int numberOfDays = 4;
+		int numberOfEvent = 4;
 		Optional<Configuration> findByKey = configurationRepository.findByKey("DEFAULTER_DRIVER");
 		if (findByKey.isPresent() && findByKey.get() != null) {
-			numberOfDays = Integer.valueOf(findByKey.get().getValue());
+			numberOfEvent = Integer.valueOf(findByKey.get().getValue());
 		}
 
 		int countDefaulterDriver = 0;
@@ -230,7 +401,7 @@ public class EventServiceImp implements EventService {
 		for (String dlNumber : categorizeEventsByDlNo.keySet()) {
 
 			List<Event> list = categorizeEventsByDlNo.get(dlNumber);
-			if (list.size() >= numberOfDays) {
+			if (list.size() >= numberOfEvent) {
 				countDefaulterDriver++;
 			}
 
@@ -350,6 +521,11 @@ public class EventServiceImp implements EventService {
 	}
 
 	private List<String> convertStringToArray(String evidencePhotos) {
+
+		Optional<Configuration> fileAccessUrl = configurationRepository.findByKey("FILE_ACCESS_BASE_URL");
+		if (fileAccessUrl.isPresent() && fileAccessUrl.get() != null) {
+			fileUrl = fileAccessUrl.get().getValue();
+		}
 		String[] urlArray = evidencePhotos.split(",");
 		List<String> fullUrls = new ArrayList<>();
 
@@ -455,8 +631,31 @@ public class EventServiceImp implements EventService {
 			int totalActiveVehicle = 0;
 			int totalInActiveVehicle = 0;
 
-			Set<Long> vechileList = new HashSet<>();
+			List<Vehicle> allVehicle = vehicleRepository.findAll();
+//			Set<Long> collectDeviceId = allVehicle.stream().map(vehicle -> vehicle.getDeviceId().longValue())
+//					.collect(Collectors.toSet());
 
+//			String deviceInformation = getDeviceInformtaion(collectDeviceId);
+			
+//			String deviceInformation="";
+//			Map<Long, DeviceInformationDto> retrieveDeviceInfoMap = new HashMap<>();
+//			if (deviceInformation != null && !deviceInformation.equals("")) {
+//				retrieveDeviceInfoMap = retrieveDeviceInfoMap(deviceInformation);
+//
+//				List<DeviceInformationDto> listOfDeviceInformation = new ArrayList<>(retrieveDeviceInfoMap.values());
+//				for (DeviceInformationDto deviceInformationDto : listOfDeviceInformation) {
+//					if (deviceInformationDto.getStatus().equals("online")) {
+//						totalActiveVehicle++;
+//					} else {
+//						totalInActiveVehicle++;
+//					}
+//
+//				}
+//
+//			}
+
+			Set<Long> vechileList = new HashSet<>();
+			
 			Map<String, Integer> vechileEventCountMap = new HashMap<>();
 			if (eventList != null && eventList.size() > 0) {
 				totalEventCount = eventList.size();
@@ -499,8 +698,9 @@ public class EventServiceImp implements EventService {
 					totalEventCount);
 			eventTypeCountDto.setTotalActiveVehicle(totalActiveVehicle);
 			eventTypeCountDto.setTotalInActiveVehicle(totalInActiveVehicle);
+			eventTypeCountDto.setTotalVehicle(allVehicle.size());
 			eventTypeCountDto.setVehicleEventCountMap(vechileEventCountMap);
-			eventTypeCountDto.setTotalEventWiseVehiclet(vechileList.size());
+			eventTypeCountDto.setVehiclesEngaged(vechileList.size());
 
 			return new Response<>("Events Counts fetched successfully", eventTypeCountDto, 200);
 		} catch (Exception e) {
@@ -518,142 +718,7 @@ public class EventServiceImp implements EventService {
 		return new Response<>("All event types fetched successfully", eventTypeList, 200);
 	}
 
-	@Override
-	public Event saveEvent(String events, List<Vehicle> vehicles) {
-
-		List<Vehicle> allVehicle = vehicleRepository.findAll();
-		Map<Integer, Vehicle> vechileMapByDeviceId = allVehicle.stream()
-				.collect(Collectors.toMap(Vehicle::getDeviceId, Function.identity()));
-
-		Gson gson = new Gson();
-		JsonArray eventList = gson.fromJson(events, JsonArray.class);
-
-		Map<Long, Event> eventsDataMap = new HashMap<>();
-		List<Long> positionIdList = new ArrayList<>();
-
-		Remark findByStatus = remarkRepository.findByStatus("PENDING");
-
-		for (JsonElement eventElement : eventList) {
-			JsonObject event = eventElement.getAsJsonObject();
-
-			if (event.has("attributes")) {
-				JsonObject eventAttributes = event.get("attributes").getAsJsonObject();
-				if (eventAttributes.has("alarm")) {
-					String eventAlarm = eventAttributes.get("alarm").getAsString();
-
-					EventType eventType = EventType.fromType(eventAlarm);
-					if (eventType != null) {
-						Event eventObject = new Event();
-						eventObject.setEventType(eventType);
-						eventObject.setEventTime(new Date());
-
-						eventObject.setEventServerCreateTime(
-								TimeUtility.getTimeStringToDateFormat(event.get("eventTime").getAsString()));
-						Long deviceId = event.get("deviceId").getAsLong();
-						Vehicle vehicle = vechileMapByDeviceId.get(deviceId.intValue());
-						Long positionId = event.get("positionId").getAsLong();
-						eventObject.setDeviceId(event.get("deviceId").getAsLong());
-						eventObject.setPositionId(positionId);
-						eventObject.setEventId(event.get("id").getAsLong());
-
-						// Its update When Vechile Service call
-						// -->
-
-						eventObject.setChassisNumber(vehicle.getChassisNumber());
-						eventObject.setVehicleNo(vehicle.getVehicleNumber());
-						eventObject.setVehicleID(vehicle.getId());
-						eventObject.setImeiNo(vehicle.getImeiNo());
-						eventObject.setRemark(findByStatus.getStatus());
-						eventObject.setRemarkId(findByStatus.getId());
-
-						Driver driver = vehicle.getDriver();
-						eventObject.setDriverName(driver.getName());
-						eventObject.setDriverPhone(driver.getPhoneNumber());
-						eventObject.setDlNo(driver.getDlNumber());
-						eventObject.setDriverId(driver.getId());
-						// <--
-						positionIdList.add(positionId);
-						eventsDataMap.put(positionId, eventObject);
-					}
-
-				}
-
-			}
-
-		}
-
-		Map<Long, String> deviceWithProtocolName = new HashMap<>();
-		String positions = "";
-		if (positionIdList != null && positionIdList.size() > 0) {
-			positions = restClientService.getPositions(positionIdList);
-			if (positions != null) {
-				JsonArray positionObject = gson.fromJson(positions, JsonArray.class);
-				for (JsonElement positionElement : positionObject) {
-					JsonObject positionData = positionElement.getAsJsonObject();
-					String evidenceFiles = "";
-					if (positionData.has("id")) {
-
-						Long positionId = positionData.get("id").getAsLong();
-						Double latitude = positionData.get("latitude").getAsDouble();
-						Double longitude = positionData.get("longitude").getAsDouble();
-
-						if (positionData.has("attributes")) {
-							JsonObject positionAttributes = positionData.get("attributes").getAsJsonObject();
-							if (positionAttributes.has("evidenceFiles")) {
-
-								Double speed = ConvertionUtility
-										.convertKilonotsTokm(positionData.get("speed").getAsDouble());
-								boolean ignition = positionAttributes.get("ignition").getAsBoolean();
-								evidenceFiles = positionAttributes.get("evidenceFiles").getAsString();
-								Event event = eventsDataMap.get(positionId);
-								event.setLatitude(latitude);
-								event.setLongitude(longitude);
-								event.setSpeed(speed);
-								event.setIgnition(ignition);
-								event.setEvidencePhotos(evidenceFiles);
-								eventsDataMap.put(positionId, event);
-
-//								if (positionData.has("protocol")) {
-//									deviceWithProtocolName.put(event.getDeviceId(),
-//											positionData.get("protocol").getAsString());
-//
-//								}
-
-							}
-
-						}
-					}
-
-				}
-
-			}
-
-		}
-
-		Event event = new Event();
-		if (eventsDataMap != null && !eventsDataMap.isEmpty()) {
-
-			List<Event> values = new ArrayList<>(eventsDataMap.values());
-			Collections.sort(values, new Comparator<Event>() {
-				@Override
-				public int compare(Event e1, Event e2) {
-					return e1.getEventServerCreateTime().compareTo(e2.getEventServerCreateTime());
-				}
-			});
-
-			List<Event> saveAll = eventRepository.saveAll(values);
-
-			if (saveAll != null && saveAll.size() > 0) {
-
-				event = values.get(values.size() - 1);
-
-				commandSendDetalisService.saveCommandDetalis(saveAll, deviceWithProtocolName);
-
-			}
-
-		}
-		return event;
-	}
+	
 
 	@Override
 	public Response<?> updateEvent(EventDto eventDto) {
@@ -875,7 +940,7 @@ public class EventServiceImp implements EventService {
 
 		for (String key : eventCountByMonth.keySet()) {
 
-			Integer baseMonthEvent = twoDateBetweenEvent.get(key);
+//			Integer baseMonthEvent = twoDateBetweenEvent.get(key);
 			Integer actualEvent = eventCountByMonth.get(key);
 
 //			eventCountByMonthWise.put(key, calculatePerformance(actualEvent, baseMonthEvent));

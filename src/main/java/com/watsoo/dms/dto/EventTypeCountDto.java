@@ -20,8 +20,11 @@ public class EventTypeCountDto {
 	int countDefaulterDriver;
 	Integer pendingRemark ;
 	Integer actionTakenRemark ;
+	int noActionTakenRemark;
 	
-	int totalEventWiseVehiclet;
+	int vehiclesEngaged;
+	
+	int totalVehicle;
 	
 	Map<String, Integer> vehicleEventCountMap;
 	
@@ -163,14 +166,31 @@ public class EventTypeCountDto {
 		this.vehicleEventCountMap = vehicleEventCountMap;
 	}
 	
-	
 
-	public int getTotalEventWiseVehiclet() {
-		return totalEventWiseVehiclet;
+	public int getVehiclesEngaged() {
+		return vehiclesEngaged;
 	}
 
-	public void setTotalEventWiseVehiclet(int totalEventWiseVehiclet) {
-		this.totalEventWiseVehiclet = totalEventWiseVehiclet;
+	public void setVehiclesEngaged(int vehiclesEngaged) {
+		this.vehiclesEngaged = vehiclesEngaged;
+	}
+
+	public int getNoActionTakenRemark() {
+		return noActionTakenRemark;
+	}
+
+	public void setNoActionTakenRemark(int noActionTakenRemark) {
+		this.noActionTakenRemark = noActionTakenRemark;
+	}
+	
+	
+
+	public int getTotalVehicle() {
+		return totalVehicle;
+	}
+
+	public void setTotalVehicle(int totalVehicle) {
+		this.totalVehicle = totalVehicle;
 	}
 
 	public EventTypeCountDto(long yawningCount, long mobileUsageCount, long distractionCount,

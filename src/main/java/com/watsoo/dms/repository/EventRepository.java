@@ -1,8 +1,8 @@
 package com.watsoo.dms.repository;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.List;
 
@@ -31,6 +31,14 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	List<Event> findEventsBetweenDatesAndDriver(@Param("startDate") String startDate, @Param("endDate") String endDate,
 			@Param("dlNumber") String dlNumber);
 
+	List<Event> findByDriverId(Long driverId);
+
+	@Query(value = "SELECT * FROM event WHERE position_id = ?1 AND event_type = ?2", nativeQuery = true)
+	Event findEventsByPositionIdAndEventType(Long positionId, String eventType);
+
+	@Query(value = "SELECT COUNT(*) FROM event WHERE driver_id = :driverId", nativeQuery = true)
+	Long countByDriverId(@Param("driverId") Long driverId);
+
 	public static Specification<Event> search(PaginatedRequestDto paginatedRequest) {
 		return (root, cq, cb) -> {
 			Predicate predicate = cb.conjunction();
@@ -38,22 +46,18 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			predicate = cb.and(predicate, cb.notEqual(root.get("eventType"), "POWER_CUT"));
 
 			if (paginatedRequest.getFromDate() != null && paginatedRequest.getToDate() != null) {
-				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+				DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
 				try {
-					Date fromDate = dateFormat.parse(paginatedRequest.getFromDate());
-					Date toDate = dateFormat.parse(paginatedRequest.getToDate());
+					ZonedDateTime fromDate = ZonedDateTime.parse(paginatedRequest.getFromDate(), formatter);
+					ZonedDateTime toDate = ZonedDateTime.parse(paginatedRequest.getToDate(), formatter);
 
-					Calendar calendar = Calendar.getInstance();
-					calendar.setTime(toDate);
-					calendar.set(Calendar.HOUR_OF_DAY, 23);
-					calendar.set(Calendar.MINUTE, 59);
-					calendar.set(Calendar.SECOND, 59);
-					calendar.set(Calendar.MILLISECOND, 999);
-					toDate = calendar.getTime();
-					// For fromDate and toDate
-					predicate = cb.and(predicate, cb.greaterThanOrEqualTo(root.get("eventServerCreateTime"), fromDate),
-							cb.lessThanOrEqualTo(root.get("eventServerCreateTime"), toDate));
-				} catch (ParseException e) {
+					Date from = Date.from(fromDate.toInstant());
+					Date to = Date.from(toDate.toInstant());
+					predicate = cb.and(predicate, cb.greaterThanOrEqualTo(root.get("eventServerCreateTime"), from),
+							cb.lessThanOrEqualTo(root.get("eventServerCreateTime"), to));
+				} catch (DateTimeParseException e) {
+
+					e.printStackTrace();
 				}
 			}
 
@@ -94,6 +98,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
 				predicate = cb.and(predicate, searchPredicate);
 			}
+			
+			cq.orderBy(cb.desc(root.get("eventServerCreateTime")));
 
 			return predicate;
 		};

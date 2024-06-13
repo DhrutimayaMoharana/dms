@@ -1,6 +1,7 @@
 package com.watsoo.dms.serviceimp;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -169,6 +170,32 @@ public class DriverServiceImpl implements DriverService {
 			return new Response<>("Succes To fetch Driver Performance", driverDtos, 200);
 		} catch (Exception e) {
 			return new Response<>("Something went wrong ", null, 400);
+		}
+	}
+
+	@Override
+	public Response<?> getDriverEventsCount(Long driverId) {
+
+		try {
+			if (driverId == null) {
+				return new Response<>("Driver Id required ", null, 400);
+			}
+
+			Optional<Driver> findById = driverRepository.findById(driverId);
+			if (findById.isEmpty() || findById.get() == null) {
+				return new Response<>("Driver not found ", null, 400);
+			}
+
+			Driver driver = findById.get();
+			Long eventListBydriverId = 0L;
+			eventListBydriverId = eventRepository.countByDriverId(driverId);
+			Map<String, Object> driversEventCount = new HashMap<>();
+			driversEventCount.put("totalEvent", eventListBydriverId);
+			driversEventCount.put("dateOfJoin", driver.getJoinDate());
+			return new Response<>("Success ", driversEventCount, 200); 
+		} catch (Exception e) {
+			return new Response<>("Something went wrong ", null, 400);
+
 		}
 	}
 

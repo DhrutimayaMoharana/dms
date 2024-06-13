@@ -50,9 +50,15 @@ public class DriverController {
 	public ResponseEntity<?> getDriverPerfomance(@RequestParam(required = false, defaultValue = "0") Integer pageSize,
 			@RequestParam(required = false, defaultValue = "0") Integer pageNo,
 			@RequestParam(required = false) String fromDate, @RequestParam(required = false) String toDate,
-			@RequestParam(required = false) String driverName, @RequestParam(required = false) String eventType) {
-		Response<?> response = driverService.getAllDriversWithPerfomance(fromDate, toDate, pageSize, pageNo, driverName,
+			@RequestParam(required = false) String dlNumber, @RequestParam(required = false) String eventType) {
+		Response<?> response = driverService.getAllDriversWithPerfomance(fromDate, toDate, pageSize, pageNo, dlNumber,
 				eventType);
+		return new ResponseEntity<>(response, HttpStatus.valueOf(response.getResponseCode()));
+	}
+	
+	@GetMapping("/event/count")
+	public ResponseEntity<?> getDriverEventsCount(@RequestParam("driverId") Long driverId) {
+		Response<?> response = driverService.getDriverEventsCount(driverId);
 		return new ResponseEntity<>(response, HttpStatus.valueOf(response.getResponseCode()));
 	}
 

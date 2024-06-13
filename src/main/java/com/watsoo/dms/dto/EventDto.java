@@ -28,6 +28,8 @@ public class EventDto {
 	private String chassisNumber;
 	private String imeiNo;
 	private String dlNumber;
+	
+	private Long driverId;
 
 	private Integer remarkId;
 
@@ -222,8 +224,15 @@ public class EventDto {
 		this.remarkId = remarkId;
 	}
 
-
 	
+	public Long getDriverId() {
+		return driverId;
+	}
+
+	public void setDriverId(Long driverId) {
+		this.driverId = driverId;
+	}
+
 	public Double getSpeed() {
 		return speed;
 	}
@@ -265,6 +274,7 @@ public class EventDto {
 		dto.setRemarkId(event.getRemarkId());
 		dto.setIgnition(event.getIgnition());
 		dto.setSpeed(event.getSpeed());
+		dto.setDriverId(event.getDriverId());
 		return dto;
 
 	}

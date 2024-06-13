@@ -146,15 +146,15 @@ public class PaginatedRequestDto {
 		this.remarkId = remarkId;
 	}
 
-	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String dlNumber, String eventType,
-			String searchKey) {
-		this.pageSize = pageSize;
-		this.pageNo = pageNo;
-		this.dlNumber = dlNumber;
-		this.eventType = eventType;
-		this.vehicleNo = vehicleNo;
-		this.searchKey = searchKey;
-	}
+//	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String dlNumber, String eventType,
+//			String searchKey) {
+//		this.pageSize = pageSize;
+//		this.pageNo = pageNo;
+//		this.dlNumber = dlNumber;
+//		this.eventType = eventType;
+//		this.vehicleNo = vehicleNo;
+//		this.searchKey = searchKey;
+//	}
 
 	public PaginatedRequestDto(int pageSize, int pageNo, String vehicleNo, String driverName, String eventType,
 			String searchKey, String fromDate, String toDate) {
@@ -218,6 +218,19 @@ public class PaginatedRequestDto {
 		this.pageSize = pageSize;
 		this.dlNumber = dlNumber;
 
+	}
+
+	public PaginatedRequestDto(Integer pageSize, Integer pageNo, String dlNumber, String eventType,
+			String fromDate, String toDate) {
+		
+		this.pageSize = pageSize;
+		this.pageNo = pageNo;
+		this.eventType = eventType;
+		this.toDate = toDate;
+		this.fromDate = fromDate;
+		this.dlNumber=dlNumber;
+		
+		
 	}
 
 }

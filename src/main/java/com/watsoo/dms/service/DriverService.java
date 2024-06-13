@@ -10,9 +10,11 @@ public interface DriverService {
 	Response<?> getDriverById(Long driverId);
 
 	Response<?> getAllDriversWithPerfomance(String fromDate, String toDate, Integer pageSize, Integer pageNo,
-			String driverName, String eventType);
+			String dlNumber, String eventType);
 
 
 	Response<?> getAllDrivers(Integer pageSize, Integer pageNo, String dlNumber);
+
+	Response<?> getDriverEventsCount(Long driverId);
 
 }

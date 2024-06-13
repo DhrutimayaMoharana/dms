@@ -104,9 +104,7 @@ public class FileUploadDetailsServiceImp implements FileUploadDetailsService {
 								if (responseCode.equals("200")) {
 									if (resposnse.has("data")) {
 
-										fileDetails.setReCallCount(fileDetails.getReCallCount() != null
-												? (fileDetails.getReCallCount() + 1)
-												: 0 + 1);
+										
 
 										JsonObject data = resposnse.get("data").getAsJsonObject();
 										if (data.has("fileSize")) {
@@ -142,6 +140,9 @@ public class FileUploadDetailsServiceImp implements FileUploadDetailsService {
 						fileDetails.setStatus(CommandStatus.FAILED.name());
 					}
 
+					fileDetails.setReCallCount(fileDetails.getReCallCount() != null
+							? (fileDetails.getReCallCount() + 1)
+							: 0 + 1);
 					fileDetails.setIsFileExist(isFileExit);
 					fileDetails.setUpdatedOn(new Date());
 

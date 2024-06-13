@@ -65,8 +65,7 @@ public class ProcessEvent {
 	String fromTime = "2024-05-29T18:30:00.000Z";
 	String toTime = null;
 
-	@Value("${scheduler.interval.second}")
-	int schedulerTime;
+	int schedulerTime = 10;
 
 	Date currentTime = new Date();
 
@@ -75,14 +74,25 @@ public class ProcessEvent {
 //	@Autowired
 //	private ScheduledExecutorService scheduledExecutorService;
 
-//	@Scheduled(fixedRate = 1000)
+	@Scheduled(cron="*/2 * * * * *")
 	public void processEvent() {
-		if (lock.tryLock()) {
+//		if (lock.tryLock()) {
 			try {
 				LocalDateTime now = LocalDateTime.now();
 				toTime = now.format(DATE_TIME_FORMATTER);
+
+				long between = ChronoUnit.SECONDS.between(LocalDateTime.parse(fromTime, DATE_TIME_FORMATTER), now);
+
 				if (fromTime != null && ChronoUnit.SECONDS.between(LocalDateTime.parse(fromTime, DATE_TIME_FORMATTER),
 						now) >= schedulerTime) {
+
+					Optional<Configuration> schedulerTimeCOnfig = configurationRepository
+							.findByKey("EVENT_SCHEDULER_TIME");
+					if (schedulerTimeCOnfig.isPresent() && !schedulerTimeCOnfig.isEmpty()) {
+
+						schedulerTime = Integer.parseInt(schedulerTimeCOnfig.get().getValue());
+					}
+
 					List<Vehicle> vehicles = vehicleRepository.findAll();
 					List<Integer> vehiclesDeviceIds = vehicles.stream().map(Vehicle::getDeviceId)
 							.collect(Collectors.toList());
@@ -95,30 +105,48 @@ public class ProcessEvent {
 								fromTime, toTime);
 						if (events != null) {
 							Event saveEvent = eventService.saveEvent(events, vehicles);
-							if (eventFromTime.isPresent()) {
+							if (eventFromTime.isPresent() && saveEvent!=null && saveEvent.getEventServerCreateTime()!=null) {
 								Configuration configuration = eventFromTime.get();
 								if (saveEvent != null) {
 									Date date = saveEvent.getEventServerCreateTime();
-									LocalDateTime localDateTime = date.toInstant().atZone(ZoneId.systemDefault())
-											.toLocalDateTime();
-									configuration.setValue(localDateTime.format(DATE_TIME_FORMATTER));
+
+									// Convert Date to LocalDateTime
+									LocalDateTime localDateTime = LocalDateTime.ofInstant(date.toInstant(),
+											ZoneId.systemDefault());
+
+									// Add one millisecond
+									localDateTime = localDateTime.plusNanos(1_000_000); // Adding one millisecond in
+																						// nanoseconds
+
+									// Convert LocalDateTime back to Date
+									Date updatedDate = Date
+											.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+
+									// Update configuration with the new date-time
+									configuration.setValue(updatedDate.toInstant().toString()); // Assuming
+																								// configuration.setValue()
+																								// expects a String
+
+									// Save the updated configuration
 									configurationRepository.save(configuration);
 								}
-
 							}
 						}
 					}
 				}
-			} finally {
-				lock.unlock();
+			} catch (Exception e) {
+				
 			}
-		}
+//			finally {
+//				lock.unlock();
+//			}
+//		}
 	}
 
-//	@Scheduled(fixedRate = 1000)
+	@Scheduled(cron="*/2 * * * * *")
 	public void processCommandSend() {
 
-		if (lock.tryLock()) {
+//		if (lock.tryLock()) {
 			try {
 
 				int reCallCount = 0;
@@ -146,9 +174,11 @@ public class ProcessEvent {
 				}
 
 //				scheduleNextRun(processCommand * 1000L);
-			} finally {
-				lock.unlock();
-			}
+//			} finally {
+//				lock.unlock();
+//			}
+		}catch (Exception e) {
+			
 		}
 	}
 

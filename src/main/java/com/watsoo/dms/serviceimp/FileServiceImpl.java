@@ -7,9 +7,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -17,12 +18,16 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.watsoo.dms.dto.Response;
+import com.watsoo.dms.restclient.RestClientService;
 import com.watsoo.dms.service.FileService;
 
 @Service
 public class FileServiceImpl implements FileService {
 
 	private Path dirLocation;
+	
+	@Autowired
+	private RestClientService restClientService;
 
 	public FileServiceImpl(@Value("${file.upload.dir}") String directory) {
 		this.dirLocation = Paths.get(directory).toAbsolutePath().normalize();
@@ -49,15 +54,17 @@ public class FileServiceImpl implements FileService {
 
 		try {
 
-			Path file = this.dirLocation.resolve(fileName).normalize();
-			Resource resource = new UrlResource(file.toUri());
-
+			
+			String checkFile = restClientService.getFile(fileName);
+			byte[] byteArray = checkFile.getBytes();
+            Resource resource = new ByteArrayResource(byteArray);
+            
 			if (resource.exists() || resource.isReadable()) {
 				return resource;
 			} else {
 				throw new RuntimeException("Could not find file");
 			}
-		} catch (MalformedURLException e) {
+		} catch (Exception e) {
 			throw new RuntimeException("Could not download file");
 		}
 
